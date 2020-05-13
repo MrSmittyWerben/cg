@@ -32,7 +32,7 @@ def getAngle(matrix):
 
 
 def getAxis(matrix):
-    v1 = matrix.item(2) * matrix.item(5) - (matrix.item(4) - 1) * matrix.item(2)
+    v1 = matrix.item(1) * matrix.item(5) - (matrix.item(4) - 1) * matrix.item(2)
     v2 = matrix.item(3) * matrix.item(2) - (matrix.item(0) - 1) * matrix.item(5)
     v3 = (matrix.item(0) - 1) * (matrix.item(4) - 1) - matrix.item(1) * matrix.item(3)
 

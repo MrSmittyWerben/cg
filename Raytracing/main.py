@@ -182,8 +182,8 @@ if __name__ == '__main__':
         time.sleep(1.0)
 
     # Size
-    WIDTH = 100
-    HEIGHT = 100
+    WIDTH = 400
+    HEIGHT = 400
 
     # Lightsources
     L1 = np.array([30, 30, 10])
