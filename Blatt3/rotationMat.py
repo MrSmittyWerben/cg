@@ -1,44 +1,31 @@
 import numpy as np
 
 
-def readMat(mat1, mat2):
-    f1 = open(mat1)
-    parts = []
-    for p in f1:
-        res = p.split()
-        for ele in res:
-            parts.append(float(ele))
+def readMat(*matrices):
+    mat_objs = []
+    for mat in matrices:
+        f = open(mat)
+        parts = []
+        for p in f:
+            res = p.split()
+            for ele in res:
+                parts.append(float(ele))
 
-    matrix1 = np.array([
-        [parts[0], parts[1], parts[2]],
-        [parts[3], parts[4], parts[5]],
-        [parts[6], parts[7], parts[8]]])
+        matrix = np.array([
+            [parts[0], parts[1], parts[2]],
+            [parts[3], parts[4], parts[5]],
+            [parts[6], parts[7], parts[8]]])
 
-    f1.close()
-    parts.clear()
+        f.close()
+        parts.clear()
 
-    f2 = open(mat2)
-    parts = []
-    for p in f2:
-        res = p.split()
-        for ele in res:
-            parts.append(float(ele))
+        mat_objs.append(matrix)
 
-    matrix2 = np.array([
-        [parts[0], parts[1], parts[2]],
-        [parts[3], parts[4], parts[5]],
-        [parts[6], parts[7], parts[8]]])
-
-    f2.close()
-
-    return [matrix1, matrix2]
+    return mat_objs
 
 
 def checkRot(matrix):
-    if np.allclose(np.linalg.inv(matrix), matrix.transpose()) and int(np.linalg.det(matrix)) == 1:
-        return True
-    return False
-
+    return np.allclose(np.linalg.inv(matrix), matrix.transpose()) and int(np.linalg.det(matrix)) == 1
 
 def getAngle(matrix):
     return int((np.arccos((np.trace(matrix) - 1) / 2)) * (180/np.pi))
