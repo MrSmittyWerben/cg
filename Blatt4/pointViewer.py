@@ -1,31 +1,35 @@
 from tkinter import *
 import sys
 import random
+import numpy as np
 
-WIDTH  = 400 # width of canvas
-HEIGHT = 400 # height of canvas
+WIDTH = 400  # width of canvas
+HEIGHT = 400  # height of canvas
 
-HPSIZE = 1 # double of point size (must be integer)
-COLOR = "#0000FF" # blue
+HPSIZE = 1  # double of point size (must be integer)
+COLOR = "#0000FF"  # blue
 
 NOPOINTS = 1000
 
-pointList = [] # list of points (used by Canvas.delete(...))
+pointList = []  # list of points (used by Canvas.delete(...))
+
 
 def quit(root=None):
     """ quit programm """
-    if root==None:
+    if root == None:
         sys.exit(0)
     root._root().quit()
     root._root().destroy()
 
+
 def draw():
     """ draw points """
-    for i in range(1,NOPOINTS):
-	x, y = random.randint(1,WIDTH), random.randint(1,HEIGHT)
-	p = can.create_oval(x-HPSIZE, y-HPSIZE, x+HPSIZE, y+HPSIZE,
-                           fill=COLOR, outline=COLOR)
-	pointList.insert(0,p)
+    for i in range(1, NOPOINTS):
+        x, y = random.randint(1, WIDTH), random.randint(1, HEIGHT)
+        p = can.create_oval(x - HPSIZE, y - HPSIZE, x + HPSIZE, y + HPSIZE,
+                            fill=COLOR, outline=COLOR)
+        pointList.insert(0, p)
+
 
 def rotYp():
     """ rotate counterclockwise around y axis """
@@ -34,6 +38,8 @@ def rotYp():
     print("In rotYp: ", NOPOINTS)
     can.delete(*pointList)
     draw()
+
+
 
 def rotYn():
     """ rotate clockwise around y axis """
@@ -45,10 +51,25 @@ def rotYn():
 
 
 if __name__ == "__main__":
-    #check parameters
-    if len(sys.argv) != 1:
-       print("pointViewerTemplate.py")
-       sys.exit(-1)
+    # check parameters
+    if len(sys.argv) != 2:
+        print("pointViewerTemplate.py")
+        sys.exit(-1)
+
+    elif sys.argv[1].lower() in ("bunny", "elephant", "squirrel", "cow"):
+
+        filename = f"{sys.argv[1]}_points.raw"
+        f = open(filename).readlines()
+        for coords in f:
+            x,y,z = coords.split(" ")
+            point = np.array([float(x), float(y), float(z)])
+            pointList.append(point)
+        print(pointList)
+
+    else:
+        print("Invalid args received")
+        sys.exit(-1)
+
 
     # create main window
     mw = Tk()
