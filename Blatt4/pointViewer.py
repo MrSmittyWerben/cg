@@ -11,6 +11,8 @@ COLOR = "#0000FF"  # blue
 
 NOPOINTS = 1000
 
+ALPHA = 10
+
 pointList = []  # list of points (used by Canvas.delete(...))
 
 
@@ -24,30 +26,88 @@ def quit(root=None):
 
 def draw():
     """ draw points """
-    for i in range(1, NOPOINTS):
-        x, y = random.randint(1, WIDTH), random.randint(1, HEIGHT)
-        p = can.create_oval(x - HPSIZE, y - HPSIZE, x + HPSIZE, y + HPSIZE,
+    can.delete('all')
+    for p in transform(pointList):
+        x,y = p
+        can.create_oval(x - HPSIZE, y - HPSIZE, x + HPSIZE, y + HPSIZE,
                             fill=COLOR, outline=COLOR)
-        pointList.insert(0, p)
 
 
 def rotYp():
     """ rotate counterclockwise around y axis """
-    global NOPOINTS
-    NOPOINTS += 100
-    print("In rotYp: ", NOPOINTS)
+    global pointList
+    # NOPOINTS += 100
+    pointList = rotateY(pointList, ALPHA)
+    print("In rotYp: ", ALPHA)
     can.delete(*pointList)
     draw()
-
 
 
 def rotYn():
     """ rotate clockwise around y axis """
-    global NOPOINTS
-    NOPOINTS -= 100
-    print("In rotYn: ", NOPOINTS)
+    global pointList
+    # NOPOINTS -= 100
+    pointList = rotateY(pointList, -ALPHA)
+    print("In rotYn: ", -ALPHA)
     can.delete(*pointList)
     draw()
+
+
+def transform(pointList):
+
+    max_coords = np.maximum.reduce([p for p in pointList])
+    min_coords = np.minimum.reduce([p for p in pointList])
+
+    moved_points = moveBox(min_coords,max_coords, pointList)
+
+    scale = 2.0/ max(max_coords - min_coords)
+    print(scale)
+
+    scaled_points = [point * scale for point in moved_points]
+    print(scaled_points)
+
+    transformed_points = toViewPort(scaled_points)
+    print(transformed_points)
+
+    return transformed_points
+
+def toViewPort(points):
+    transformed = []
+    for p in points:
+        p_x = (1+p[0]) * WIDTH/2.0
+        p_y = (1-p[1]) * HEIGHT/2.0
+        transformed.append(np.array([p_x, p_y]))
+
+    return transformed
+
+def moveBox(min,max, points):
+    print(min.item(0), max.item(0))
+    center_x = (min.item(0) + max.item(0))/2
+    center_y = (min.item(1) + max.item(1))/2
+    center_z = (min.item(2) + max.item(2))/2
+
+    center = np.array([center_x, center_y, center_z])
+    print(center)
+
+    moved_points = []
+    for point in points:
+        new_point = point - center
+        moved_points.append(new_point)
+
+    return moved_points
+
+def rotateY(points, angle):
+    sin = np.sin(angle)
+    cos = np.cos(angle)
+
+    m = np.array([[cos, 0, sin], [0, 1, 0], [-sin, 0, cos]])
+    points_rod = []
+
+    for coords in points:
+        rot_coords = np.dot(m, coords)
+        points_rod.append(rot_coords)
+
+    return points_rod
 
 
 if __name__ == "__main__":
@@ -61,15 +121,13 @@ if __name__ == "__main__":
         filename = f"{sys.argv[1]}_points.raw"
         f = open(filename).readlines()
         for coords in f:
-            x,y,z = coords.split(" ")
+            x, y, z = coords.split()
             point = np.array([float(x), float(y), float(z)])
             pointList.append(point)
-        print(pointList)
 
     else:
         print("Invalid args received")
         sys.exit(-1)
-
 
     # create main window
     mw = Tk()
