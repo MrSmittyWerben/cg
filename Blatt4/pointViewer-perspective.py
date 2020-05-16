@@ -11,7 +11,10 @@ COLOR = "#0000FF"  # blue
 
 NOPOINTS = 1000
 
-ALPHA = 10
+ALPHA = 30
+ASPECT = WIDTH/HEIGHT
+near = 5
+far = 7
 
 pointList = []  # list of points (used by Canvas.delete(...))
 
@@ -59,9 +62,17 @@ def transform(pointList):
     max_coords = np.maximum.reduce([p for p in pointList])
     min_coords = np.minimum.reduce([p for p in pointList])
 
-    moved_points = frustum(min_coords, max_coords, pointList)
+    center = (max_coords + min_coords)/2
 
-    projected_points = parallelProject(moved_points)
+    print(center)
+
+    radius = math.sqrt( (center[0]-max_coords[0])**2 + (center[1]-max_coords[1])**2 + (center[2]-max_coords[2])**2 )
+
+    looked_points = lookAt(radius, pointList)
+
+   # moved_points = frustum(min_coords, max_coords, looked_points)
+
+    projected_points = perspectivelProject(looked_points)
 
     projected_points_xy = []
 
@@ -73,13 +84,37 @@ def transform(pointList):
 
     return transformed_points
 
-def parallelProject(points):
-    projected_points = []
-    p_grundriss = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+def lookAt(r, points):
+    camera_points = []
+
+    m_la = np.array([
+        [1,0,0,0],
+        [0,1,0,0],
+        [0,0,1,-2*r],
+        [0,0,0,1]
+    ])
 
     for p in points:
-        p_point = np.dot(p_grundriss,p)
-        projected_points.append(p_point)
+        p_la = np.dot(m_la, p)
+        camera_points.append(p_la)
+
+    return camera_points
+
+def perspectivelProject(points):
+    projected_points = []
+    cot = np.cos(math.radians(ALPHA))/np.sin(math.radians(ALPHA))
+
+    t_pers = np.array([
+        [cot/ASPECT, 0,0,0],
+        [0,cot,0,0],
+        [0,0, -(far+near)/(far-near), (-2*far*near)/(far-near)],
+        [0,0,-1,0]
+    ])
+
+    for p in points:
+        t_p = np.dot(t_pers,p)
+        t_p_div = np.array([t_p[0]/t_p[3], t_p[1]/t_p[3], t_p[2]/t_p[3],t_p[3]/t_p[3] ]) # prespective division
+        projected_points.append(t_p_div)
 
     return projected_points
 
@@ -101,10 +136,10 @@ def frustum(min,max, points):
     zn = min[2]
 
     t_ortho = np.array([
-        [2.0/(xr-xl), 0,0,-(xr+xl)/(xr-xl)],
-        [0, 2.0/(yt-yb), 0, -(yt+yb)/(yt-yb)],
-        [0,0,-2/(zf-zn),-(zf+zn)/(zf-zn)],
-        [0,0,0,1]
+        [2.0/(xr-xl), 0, (xr+xl)/(xr-xl), 0],
+        [0, (2.0*near)/(yt-yb), (yt+yb)/(yt-yb) , 0],
+        [0,0, -(far+near)/(far-near), -2*(far*near)/(far-near)],
+        [0,0,-1,0]
         ])
 
     moved_points = []
@@ -117,6 +152,20 @@ def frustum(min,max, points):
 def rotateY(points, angle):
     sin = np.sin(math.radians(angle))
     cos = np.cos(math.radians(angle))
+
+    toOrigin = np.array([
+        [1,0,0,-WIDTH/2],
+        [0,1,0,-HEIGHT/2],
+        [0,0,1,0],
+        [0,0,0,1]
+    ])
+
+    toOriginal = np.array([
+        [1,0,0,WIDTH/2],
+        [0,1,0,HEIGHT/2],
+        [0,0,1,0],
+        [0,0,0,1]
+    ])
 
     m = np.array([[cos, 0, sin,0], [0, 1, 0,0], [-sin, 0, cos,0], [0,0,0,1]])
     print(m)
