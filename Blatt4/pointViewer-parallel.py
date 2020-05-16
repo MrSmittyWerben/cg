@@ -1,6 +1,6 @@
+import math
 from tkinter import *
 import sys
-import random
 import numpy as np
 
 WIDTH = 400  # width of canvas
@@ -28,6 +28,7 @@ def draw():
     """ draw points """
     can.delete('all')
     for p in transform(pointList):
+        print(p)
         x,y = p
         can.create_oval(x - HPSIZE, y - HPSIZE, x + HPSIZE, y + HPSIZE,
                             fill=COLOR, outline=COLOR)
@@ -58,20 +59,31 @@ def transform(pointList):
     max_coords = np.maximum.reduce([p for p in pointList])
     min_coords = np.minimum.reduce([p for p in pointList])
 
-    moved_points = moveBox(min_coords,max_coords, pointList)
+    moved_points = frustum(min_coords, max_coords, pointList)
 
-    scale = 2.0/ max(max_coords - min_coords)
-    print(scale)
+    projected_points = parallelProject(moved_points)
 
-    scaled_points = [point * scale for point in moved_points]
-    print(scaled_points)
+    projected_points_xy = []
 
-    transformed_points = toViewPort(scaled_points)
-    print(transformed_points)
+    for p in projected_points: # clip z coordinates
+        p_xy = np.array([p[0],p[1],p[3]])
+        projected_points_xy.append(p_xy)
+
+    transformed_points = toViewPort(projected_points_xy, min_coords, max_coords)
 
     return transformed_points
 
-def toViewPort(points):
+def parallelProject(points):
+    projected_points = []
+    p_grundriss = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+
+    for p in points:
+        p_point = np.dot(p_grundriss,p)
+        projected_points.append(p_point)
+
+    return projected_points
+
+def toViewPort(points, min, max):
     transformed = []
     for p in points:
         p_x = (1+p[0]) * WIDTH/2.0
@@ -80,32 +92,56 @@ def toViewPort(points):
 
     return transformed
 
-def moveBox(min,max, points):
-    print(min.item(0), max.item(0))
-    center_x = (min.item(0) + max.item(0))/2
-    center_y = (min.item(1) + max.item(1))/2
-    center_z = (min.item(2) + max.item(2))/2
+def frustum(min,max, points):
+    xr = max[0]
+    xl = min[0]
+    yt = max[1]
+    yb = min[1]
+    zf = max[2]
+    zn = min[2]
 
-    center = np.array([center_x, center_y, center_z])
-    print(center)
+    t_ortho = np.array([
+        [2.0/(xr-xl), 0,0,-(xr+xl)/(xr-xl)],
+        [0, 2.0/(yt-yb), 0, -(yt+yb)/(yt-yb)],
+        [0,0,-2/(zf-zn),-(zf+zn)/(zf-zn)],
+        [0,0,0,1]
+        ])
 
     moved_points = []
-    for point in points:
-        new_point = point - center
-        moved_points.append(new_point)
+    for p in points:
+        m_p = np.dot(t_ortho,p)
+        #if (m_p[3]+m_p[0]) > 0 and (m_p[3]-m_p[0]) > 0 and (m_p[3]+m_p[1]) > 0 and (m_p[3]-m_p[1]) > 0 and (m_p[3]+m_p[2]) > 0 and (m_p[3]-m_p[2]) > 0:
+        moved_points.append(m_p)
 
     return moved_points
 
 def rotateY(points, angle):
-    sin = np.sin(angle)
-    cos = np.cos(angle)
+    sin = np.sin(math.radians(angle))
+    cos = np.cos(math.radians(angle))
 
-    m = np.array([[cos, 0, sin], [0, 1, 0], [-sin, 0, cos]])
+    toOrigin = np.array([
+        [1,0,0,-WIDTH/2],
+        [0,1,0,-HEIGHT/2],
+        [0,0,1,0],
+        [0,0,0,1]
+    ])
+
+    toOriginal = np.array([
+        [1,0,0,WIDTH/2],
+        [0,1,0,HEIGHT/2],
+        [0,0,1,0],
+        [0,0,0,1]
+    ])
+
+    m = np.array([[cos, 0, sin,0], [0, 1, 0,0], [-sin, 0, cos,0], [0,0,0,1]])
+    print(m)
     points_rod = []
 
     for coords in points:
-        rot_coords = np.dot(m, coords)
-        points_rod.append(rot_coords)
+        origin_coords = np.dot(toOrigin, coords)
+        rot_coords = np.dot(m, origin_coords)
+        moved_back_coords = np.dot(toOriginal, rot_coords)
+        points_rod.append(moved_back_coords)
 
     return points_rod
 
@@ -122,7 +158,7 @@ if __name__ == "__main__":
         f = open(filename).readlines()
         for coords in f:
             x, y, z = coords.split()
-            point = np.array([float(x), float(y), float(z)])
+            point = np.array([float(x), float(y), float(z), 1.0])
             pointList.append(point)
 
     else:
