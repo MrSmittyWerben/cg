@@ -69,7 +69,7 @@ def transform(pointList):
         p_xy = np.array([p[0],p[1],p[3]])
         projected_points_xy.append(p_xy)
 
-    transformed_points = toViewPort(projected_points_xy, min_coords, max_coords)
+    transformed_points = toViewPort(projected_points_xy)
 
     return transformed_points
 
@@ -83,7 +83,7 @@ def parallelProject(points):
 
     return projected_points
 
-def toViewPort(points, min, max):
+def toViewPort(points):
     transformed = []
     for p in points:
         p_x = (1+p[0]) * WIDTH/2.0
