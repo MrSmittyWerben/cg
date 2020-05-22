@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def readMat(*matrices):
     mat_objs = []
     for mat in matrices:
@@ -25,11 +24,10 @@ def readMat(*matrices):
 
 
 def checkRot(matrix):
-    return np.allclose(np.linalg.inv(matrix), matrix.transpose()) and int(np.linalg.det(matrix)) == 1
+    return np.allclose(np.linalg.inv(matrix), matrix.transpose()) and np.isclose(int(np.linalg.det(matrix)), 1)
 
 def getAngle(matrix):
     return int((np.arccos((np.trace(matrix) - 1) / 2)) * (180/np.pi))
-
 
 def getAxis(matrix):
     v1 = matrix.item(1) * matrix.item(5) - (matrix.item(4) - 1) * matrix.item(2)

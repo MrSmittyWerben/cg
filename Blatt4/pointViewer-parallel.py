@@ -11,7 +11,7 @@ COLOR = "#0000FF"  # blue
 
 NOPOINTS = 1000
 
-ALPHA = 10
+ALPHA = 30
 
 pointList = []  # list of points (used by Canvas.delete(...))
 
@@ -85,6 +85,7 @@ def parallelProject(points):
 
 def toViewPort(points):
     transformed = []
+
     for p in points:
         p_x = (1+p[0]) * WIDTH/2.0
         p_y = (1-p[1]) * HEIGHT/2.0

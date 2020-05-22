@@ -62,13 +62,11 @@ def transform(pointList):
     max_coords = np.maximum.reduce([p for p in pointList])
     min_coords = np.minimum.reduce([p for p in pointList])
 
-    center = (max_coords + min_coords) / 2.0
+    center = (max_coords - min_coords) / 2.0 + min_coords
+    radius = np.linalg.norm(center-min_coords)
 
-    radius = np.linalg.norm(center-max_coords)
     looked_points = lookAt(radius, pointList)
-
     projected_points = perspectivelProject(looked_points)
-
     projected_points_xy = []
 
     for p in projected_points: # clip z coordinates
@@ -130,12 +128,12 @@ def toViewPort(points):
 
     return transformed
 
-
 def rotateY(points, angle):
     sin = np.sin(math.radians(angle))
     cos = np.cos(math.radians(angle))
 
     m = np.array([[cos, 0, sin,0], [0, 1, 0,0], [-sin, 0, cos,0], [0,0,0,1]])
+
     print(m)
     points_rod = []
 
@@ -144,7 +142,6 @@ def rotateY(points, angle):
         points_rod.append(rot_coords)
 
     return points_rod
-
 
 if __name__ == "__main__":
     # check parameters
