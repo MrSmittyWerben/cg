@@ -26,9 +26,9 @@ class Point:
 
 def normalizeClipRegion(clipRegion):
     """ normalize clip region to point list [lower left, upper right] """
-    ll = map(min, apply(zip, clipRegion))  # lower left corner
-    ur = map(max, apply(zip, clipRegion))  # upper right corner
-    return [[ll[0], ur[1]], [ur[0], ll[1]]]
+    ll = min(zip(clipRegion))[0]  # lower left corner
+    ur = max(zip(clipRegion))[0] # upper right corner
+    return [ll[0], ur[1]], [ur[0], ll[1]]
 
 
 def drawPoints():
@@ -68,7 +68,8 @@ def drawLines():
             elementList.append(element)
             newLine = calcNewLine(line, lc, clipRegion)
             if newLine:
-                element = can.create_line(newLine, width=CLSIZE)
+                print(newLine)
+                element = can.create_line(newLine[0].coords, newLine[1].coords, width=CLSIZE)
                 elementList.append(element)
 
 
@@ -90,10 +91,47 @@ def lineCase(line):
         return union
 
 
-def calcNewLine(Line, lineC, clipRegion):
+def calcNewLine(line, lineC, clipRegion):
     """ Calculate clipped line """
-    # TODO: calculate new line (clipped at clipRegion)
-    return []
+
+    # https://www.geeksforgeeks.org/line-clipping-set-1-cohen-sutherland-algorithm/
+
+    newline = []
+    x_min = min(clipRegion[0][0], clipRegion[1][0])
+    x_max = max(clipRegion[0][0], clipRegion[1][0])
+    y_min = min(clipRegion[0][1], clipRegion[1][1])
+    y_max = max(clipRegion[0][1], clipRegion[1][1])
+
+    if lineC & 8: # bit 3 gesetzt
+        x = yIntersectXAxis(line, y_max)
+        a = Point([x, y_max], clipRegion)
+    elif lineC & 4: # bit 2 gesetzt
+        x = yIntersectXAxis(line, y_min)
+        a = Point([x, y_min], clipRegion)
+    elif lineC & 2: # bit 1 gesetzt
+        y = xIntersectYAxis(line, x_max)
+        a = Point([x_max,y], clipRegion)
+    elif lineC & 1: # bit 0 gesetzt
+        y = xIntersectYAxis(line, x_min)
+        a = Point([x_min,y], clipRegion)
+
+
+    if a.reCode == 0:
+        newline.append(a)
+        if line[0].reCode == 0:
+            newline.append(line[0])
+        else:
+            newline.append(line[1])
+
+    return newline
+
+def yIntersectXAxis(line,x):
+    x1,x2,y1,y2 = line[0].coords[0], line[1].coords[0], line[0].coords[1], line[1].coords[1]
+    return ((y2-y1)/(x2-x1))*(x-x2) + y2
+
+def xIntersectYAxis(line,y):
+    x1,x2,y1,y2 = line[0].coords[0], line[1].coords[0], line[0].coords[1], line[1].coords[1]
+    return ((x2-x1)/(y2-y1))*(y-y2) + x2
 
 
 def quit(root=None):
