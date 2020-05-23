@@ -1,4 +1,5 @@
 from tkinter import *
+import numpy as np
 import sys
 
 WIDTH = 700  # width of canvas
@@ -15,20 +16,33 @@ numPolyPoints = 0
 pointList = []  # list of points
 elementList = []  # list of elements (used by Canvas.delete(...))
 
+def lineToHomRay(*lines):
+    rays = []
+    for line in lines:
+        p = np.array([line[0][0],line[0][1],1])
+        q = np.array([line[1][0],line[1][1],1])
+        rays.append(np.cross(p,q))
+
+    return rays
 
 def intersect(l1, l2):
     """ returns True if linesegments l1 and l2 intersect. False otherwise."""
-    # TODO: Implement test ...
+    rays = lineToHomRay(l1,l2)
+    intersection_point = np.cross(rays[0],rays[1])
+    if intersection_point[2] != 0: #schnittpunkt existiert
+        # wieder zu einem normalen punkt (x,y) konvertieren
+        intersection_point = np.array([intersection_point[0]/intersection_point[2], intersection_point[1]/intersection_point[2]])
+        #punkt muss links von der polygonseit liegen und in der selben höhe
+        return intersection_point[0] >= l2[0][0] and min(l1[0][1], l1[1][1]) < intersection_point[1] < max(l1[0][1], l1[1][1])
     return False
-
 
 def pointInPolygon(p):
     """ test wether point p is in polygon pointList[:numPolyPoints] or not"""
     pList = pointList[:numPolyPoints]
     pList.append(pointList[0])
     count = 0
-    testLine = [p, [WIDTH, p[1]]]
-    for line in zip(pList, pList[1:]):
+    testLine = [p, [WIDTH, p[1]]] # testlinie (horizontal) vom punkt bis zum bildschirmrand, links nach rechts
+    for line in zip(pList, pList[1:]): #polygon seiten
         if intersect(line, testLine):
             count = count + 1
     return (count % 2) == 1
