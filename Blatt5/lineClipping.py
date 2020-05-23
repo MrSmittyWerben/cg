@@ -103,16 +103,16 @@ def calcNewLine(line, lineC, clipRegion):
     y_max = max(clipRegion[0][1], clipRegion[1][1])
 
     if lineC & 8: # bit 3 gesetzt
-        x = yIntersectXAxis(line, y_max)
+        x = xIntersectYAxis(line, y_max)
         a = Point([x, y_max], clipRegion)
-    elif lineC & 4: # bit 2 gesetzt
-        x = yIntersectXAxis(line, y_min)
+    if lineC & 4: # bit 2 gesetzt
+        x = xIntersectYAxis(line, y_min)
         a = Point([x, y_min], clipRegion)
-    elif lineC & 2: # bit 1 gesetzt
-        y = xIntersectYAxis(line, x_max)
+    if lineC & 2: # bit 1 gesetzt
+        y = yIntersectXAxis(line, x_max)
         a = Point([x_max,y], clipRegion)
-    elif lineC & 1: # bit 0 gesetzt
-        y = xIntersectYAxis(line, x_min)
+    if lineC & 1: # bit 0 gesetzt
+        y = yIntersectXAxis(line, x_min)
         a = Point([x_min,y], clipRegion)
 
 
