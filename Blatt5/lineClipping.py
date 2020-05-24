@@ -102,26 +102,33 @@ def calcNewLine(line, lineC, clipRegion):
     y_min = min(clipRegion[0][1], clipRegion[1][1])
     y_max = max(clipRegion[0][1], clipRegion[1][1])
 
+    intersectionPoints = []
+
     if lineC & 8: # bit 3 gesetzt
-        x = xIntersectYAxis(line, y_max)
-        a = Point([x, y_max], clipRegion)
-    if lineC & 4: # bit 2 gesetzt
         x = xIntersectYAxis(line, y_min)
-        a = Point([x, y_min], clipRegion)
+        a8 = Point([x, y_min], clipRegion)
+        intersectionPoints.append(a8)
+    if lineC & 4: # bit 2 gesetzt
+        x = xIntersectYAxis(line, y_max)
+        a4 = Point([x, y_max], clipRegion)
+        intersectionPoints.append(a4)
     if lineC & 2: # bit 1 gesetzt
         y = yIntersectXAxis(line, x_max)
-        a = Point([x_max,y], clipRegion)
+        a2 = Point([x_max,y], clipRegion)
+        intersectionPoints.append(a2)
     if lineC & 1: # bit 0 gesetzt
         y = yIntersectXAxis(line, x_min)
-        a = Point([x_min,y], clipRegion)
+        a1 = Point([x_min,y], clipRegion)
+        intersectionPoints.append(a1)
 
+    for intersection in intersectionPoints:
+        if intersection.reCode == 0:
+            newline.append(intersection)
+            if line[0].reCode == 0:
+                newline.append(line[0])
+            elif line[1].reCode == 0:
+                newline.append(line[1])
 
-    if a.reCode == 0:
-        newline.append(a)
-        if line[0].reCode == 0:
-            newline.append(line[0])
-        else:
-            newline.append(line[1])
 
     return newline
 
