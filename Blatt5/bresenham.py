@@ -39,7 +39,26 @@ def drawLines():
 
 def drawBresenhamLine(p, q):
     """ draw a line using bresenhams algorithm """
-    # TODO: implement this function
+    x0 = int(p[0])
+    y0 = int(p[1])
+    x1 = int(q[0])
+    y1 = int(q[1])
+
+    a,b = y1-y0, x0-x1
+    d = 2*a + b
+    incE = 2*a
+    incNE = 2*(a+b)
+    y = y0
+    for x in range(x0,x1+1):
+        element = can.create_rectangle(x - HPSIZE, y - HPSIZE,
+                                       x + HPSIZE, y + HPSIZE,
+                                       fill=FCOLOR, outline=BCOLOR)
+        elementList.append(element)
+        if d<= 0:
+            d += incE
+        else:
+            d += incNE
+            y += 1
     pass
 
 
