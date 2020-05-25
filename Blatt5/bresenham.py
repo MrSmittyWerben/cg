@@ -85,8 +85,8 @@ def drawBresenhamLine(p, q):
     print(coords)
 
     for x,y in coords:
-        element = can.create_rectangle(x - 0.5*HPSIZE, y - 0.5*HPSIZE,
-                                       x + 0.5*HPSIZE, y + 0.5*HPSIZE,
+        element = can.create_rectangle(x - HPSIZE, y - HPSIZE,
+                                       x + HPSIZE, y + HPSIZE,
                                        fill=FCOLOR, outline=BCOLOR)
         elementList.append(element)
 
