@@ -28,7 +28,7 @@ def draw():
     """ draw points """
     can.delete('all')
     for p in transform(pointList):
-        print(p)
+        #print(p)
         x,y = p
         can.create_oval(x - HPSIZE, y - HPSIZE, x + HPSIZE, y + HPSIZE,
                             fill=COLOR, outline=COLOR)
@@ -38,7 +38,7 @@ def rotYp():
     """ rotate counterclockwise around y axis """
     global pointList
     # NOPOINTS += 100
-    pointList = rotateY(pointList, ALPHA)
+    pointList = rotateY(pointList, -ALPHA)
     print("In rotYp: ", ALPHA)
     can.delete(*pointList)
     draw()
@@ -48,7 +48,7 @@ def rotYn():
     """ rotate clockwise around y axis """
     global pointList
     # NOPOINTS -= 100
-    pointList = rotateY(pointList, -ALPHA)
+    pointList = rotateY(pointList, ALPHA)
     print("In rotYn: ", -ALPHA)
     can.delete(*pointList)
     draw()
@@ -58,6 +58,9 @@ def transform(pointList):
 
     max_coords = np.maximum.reduce([p for p in pointList])
     min_coords = np.minimum.reduce([p for p in pointList])
+
+    print('Max: ', max_coords)
+    print('Min: ', min_coords)
 
     moved_points = frustum(min_coords, max_coords, pointList)
 
@@ -87,25 +90,25 @@ def toViewPort(points):
     transformed = []
 
     for p in points:
-        p_x = (1+p[0]) * WIDTH/2.0
-        p_y = (1-p[1]) * HEIGHT/2.0
+        p_x = (1-p[0]) * WIDTH/2
+        p_y = (1-p[1]) * HEIGHT/2
         transformed.append(np.array([p_x, p_y]))
 
     return transformed
 
 def frustum(min,max, points):
-    xr = max[0]
-    xl = min[0]
+    xl = max[0]
+    xr = min[0]
     yt = max[1]
     yb = min[1]
     zf = max[2]
     zn = min[2]
 
     t_ortho = np.array([
-        [2.0/(xr-xl), 0,0,-(xr+xl)/(xr-xl)],
+        [2.0/(xr-xl), 0,0, -(xr+xl)/(xr-xl)],
         [0, 2.0/(yt-yb), 0, -(yt+yb)/(yt-yb)],
-        [0,0,-2/(zf-zn),-(zf+zn)/(zf-zn)],
-        [0,0,0,1]
+        [0,0,-2/(zf-zn), -(zf+zn)/(zf-zn)],
+        [0, 0, 0, 1]
         ])
 
     moved_points = []

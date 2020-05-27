@@ -109,7 +109,7 @@ def perspectivelProject(points):
         [cot/ASPECT, 0,0,0],
         [0,cot,0,0],
         [0, 0, -(far + near) / (far - near), (-2 * far * near) / (far - near)],
-        [0,0,-1,0]
+        [0, 0, -1, 0]
     ])
 
     for p in points:
@@ -122,7 +122,7 @@ def perspectivelProject(points):
 def toViewPort(points):
     transformed = []
     for p in points:
-        p_x = (1+p[0]) * WIDTH/2.0
+        p_x = (1-p[0]) * WIDTH/2.0
         p_y = (1-p[1]) * HEIGHT/2.0
         transformed.append(np.array([p_x, p_y]))
 
@@ -132,7 +132,7 @@ def rotateY(points, angle):
     sin = np.sin(math.radians(angle))
     cos = np.cos(math.radians(angle))
 
-    m = np.array([[cos, 0, sin,0], [0, 1, 0,0], [-sin, 0, cos,0], [0,0,0,1]])
+    m = np.array([[cos, 0, sin, 0], [0, 1, 0, 0], [-sin, 0, cos, 0], [0, 0, 0, 1]])
 
     print(m)
     points_rod = []
