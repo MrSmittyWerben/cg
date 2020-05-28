@@ -9,14 +9,28 @@ points = []
 originTri = [[0.0, 0.0], [0.1, 0.2], [0.2, 0.0]]
 points.extend(originTri)
 
-for i in range(2):
+for i in range(11):
     copy = originTri.copy()
-
-    p0 = copy[2]
-    p1_0 = copy[1][0] + 0.2
-    p1_1 = copy[1][1]
-    p2_0 = copy[2][0] + 0.2
-    p2_1 = copy[2][1]
+    
+    if i != 5:
+        if i % 2 == 0:
+            p0 = copy[2]
+            p1_0 = copy[1][0]
+            p1_1 = copy[1][1]
+            p2_0 = copy[1][0] + 0.2
+            p2_1 = copy[1][1]
+        else:
+            p0 = copy[0]
+            p1_0 = copy[2][0]
+            p1_1 = copy[2][1]
+            p2_0 = copy[0][0] + 0.2
+            p2_1 = copy[0][1]
+    else:
+        p0 = copy[1]
+        p1_0 = copy[0][0]
+        p1_1 = copy[0][1] + 0.4
+        p2_0 = copy[2][0]
+        p2_1 = copy[2][1]
 
     tri = [p0, [p1_0, p1_1], [p2_0, p2_1]]
     print(tri)
@@ -46,7 +60,7 @@ def display():
     vbo.bind()
     glVertexPointerf(vbo)
     glEnableClientState(GL_VERTEX_ARRAY)
-    glDrawArrays(GL_TRIANGLES, 0, 6)
+    glDrawArrays(GL_TRIANGLES, 0, len(points))
     vbo.unbind()
 
     glDisableClientState(GL_VERTEX_ARRAY)
