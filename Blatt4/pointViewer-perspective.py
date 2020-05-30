@@ -31,8 +31,7 @@ def draw():
     """ draw points """
     can.delete('all')
     for p in transform(pointList):
-        print(p)
-        x,y = p
+        x, y = p
         can.create_oval(x - HPSIZE, y - HPSIZE, x + HPSIZE, y + HPSIZE,
                             fill=COLOR, outline=COLOR)
 
@@ -62,11 +61,13 @@ def transform(pointList):
     max_coords = np.maximum.reduce([p for p in pointList])
     min_coords = np.minimum.reduce([p for p in pointList])
 
-    center = (max_coords - min_coords) / 2.0 + min_coords
-    radius = np.linalg.norm(center-min_coords)
+    center = (max_coords + min_coords) / 2.0
+    radius = np.linalg.norm(min_coords-center)
 
     looked_points = lookAt(radius, pointList)
+    print(looked_points[0])
     projected_points = perspectivelProject(looked_points)
+    print(projected_points[0])
     projected_points_xy = []
 
     for p in projected_points: # clip z coordinates
@@ -74,6 +75,7 @@ def transform(pointList):
         projected_points_xy.append(p_xy)
 
     transformed_points = toViewPort(projected_points_xy)
+    print(transformed_points[0])
 
     return transformed_points
 
@@ -87,6 +89,8 @@ def lookAt(r, points):
     f = (c - e) / np.linalg.norm(c - e)
     s = np.cross(f, up_norm) / np.linalg.norm(np.cross(f, up_norm))
     u = np.cross(s, f)
+
+    print(s,u)
 
     m_la = np.array([
         [s[0],s[1],s[2],-np.dot(s,e)],
@@ -104,6 +108,7 @@ def lookAt(r, points):
 def perspectivelProject(points):
     projected_points = []
     cot = np.cos(math.radians(ALPHA))/np.sin(math.radians(ALPHA))
+    print(cot)
 
     t_pers = np.array([
         [cot/ASPECT, 0,0,0],
@@ -114,6 +119,7 @@ def perspectivelProject(points):
 
     for p in points:
         m_p = np.dot(t_pers,p)
+        print('undivided', m_p)
         m_p_div = np.array([m_p[0] / m_p[3], m_p[1] / m_p[3], m_p[2] / m_p[3], m_p[3] / m_p[3]])  # prespective division
         projected_points.append(m_p_div)
 

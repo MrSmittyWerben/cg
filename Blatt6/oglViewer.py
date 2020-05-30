@@ -1,10 +1,51 @@
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+from OpenGL.arrays import vbo
 from OpenGL.GL import *
 import sys, math, os
+import numpy as np
 
 EXIT = -1
 FIRST = 0
+
+WIDTH = 500
+HEIGHT = 500
+ASPECT = WIDTH/HEIGHT
+
+# init global vars
+pointList = []
+max_coord = np.array([])
+min_coord = np.array([])
+center = np.array([])
+scale = 1
+
+ALPHA = 10
+rotX, rotY, rotZ = 0, 0, 0
+
+if len(sys.argv) != 2:
+    print("oglViewer.py")
+    sys.exit(-1)
+
+elif sys.argv[1].lower() in ("bunny", "elephant", "squirrel", "cow"):
+
+    filename = f"{sys.argv[1]}_points.raw"
+    f = open(filename).readlines()
+    for coords in f:
+        x, y, z = coords.split()
+        point = [float(x), float(y), float(z)]
+        pointList.append(point)
+
+    # bounding box
+    max_coord = np.maximum.reduce([p for p in pointList])
+    min_coord = np.minimum.reduce([p for p in pointList])
+    center = (max_coord + min_coord) / 2.0
+    scale = 2.0 / (max_coord[0]-min_coord[0])
+
+    vbo = vbo.VBO(np.array(pointList, 'f'))
+
+else:
+    print("Invalid args received")
+    sys.exit(-1)
 
 
 def init(width, height):
@@ -15,17 +56,36 @@ def init(width, height):
     glOrtho(-1.5, 1.5, -1.5, 1.5, -1.0, 1.0)  # multiply with new p-matrix
     glMatrixMode(GL_MODELVIEW)  # switch to modelview matrix
 
-
 def display():
     """ Render all objects"""
     glClear(GL_COLOR_BUFFER_BIT)  # clear screen
     glColor(0.0, 0.0, 1.0)  # render stuff
-    glRectf(-1.0, -1.0, 1.0, 1.0)
+
+    glLoadIdentity()  # reset mv matrix
+
+    glRotate(rotX, 1, 0, 0)  # rotate x
+    glRotate(rotY, 0, 1, 0)  # rotate y
+    glRotate(rotZ, 0, 0, 1)  # rotate z
+
+    glScale(scale, scale, scale)  # scale to window
+    glTranslate(-center[0], -center[1], -center[2])  # move to origin AFTER rotating and scaling, independent of these actions
+
+    vbo.bind()
+    glVertexPointerf(vbo)
+    glEnableClientState(GL_VERTEX_ARRAY)
+    glDrawArrays(GL_POINTS, 0, len(pointList))
+    vbo.unbind()
+
+    glDisableClientState(GL_VERTEX_ARRAY)
+
     glutSwapBuffers()  # swap buffer
 
 
 def reshape(width, height):
     """ adjust projection matrix to window size"""
+    if height == 0:
+        height = 1
+
     glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -41,9 +101,36 @@ def reshape(width, height):
 
 
 def keyPressed(key, x, y):
+    global ALPHA, rotX, rotY, rotZ
+
+    # Convert bytes object to string
+    key = key.decode("utf-8")
+
     """ handle keypress events """
+
+    print('Key pressed: ', key)
     if key == chr(27):  # chr(27) = ESCAPE
         sys.exit()
+
+    if key == 'x':
+        rotX += ALPHA
+
+    if key == 'X':
+        rotX -= ALPHA
+
+    if key == 'y':
+        rotY += ALPHA
+
+    if key == 'Y':
+        rotY -= ALPHA
+
+    if key == 'z':
+        rotZ += ALPHA
+
+    if key == 'Z':
+        rotZ -= ALPHA
+
+    glutPostRedisplay()
 
 
 def mouse(button, state, x, y):
@@ -86,10 +173,11 @@ def main():
     glutAddMenuEntry("EXIT", EXIT)  # Add another menu entry
     glutAttachMenu(GLUT_RIGHT_BUTTON)  # Attach mouse button to menue
 
-    init(500, 500)  # initialize OpenGL state
+    init(WIDTH, HEIGHT)  # initialize OpenGL state
 
     glutMainLoop()  # start even processing
 
 
 if __name__ == "__main__":
+    # Start
     main()
