@@ -30,9 +30,9 @@ def intersect(l1, l2):
     rays = lineToHomRay(l1,l2)
     intersection_point = np.cross(rays[0],rays[1])
     if intersection_point[2] != 0: #schnittpunkt existiert
-        # wieder zu einem normalen punkt (x,y) konvertieren
+        #  wieder zu einem normalen punkt (x,y) konvertieren
         intersection_point = np.array([intersection_point[0]/intersection_point[2], intersection_point[1]/intersection_point[2]])
-        #punkt muss links von der polygonseit liegen und in der selben höhe
+        #  punkt muss links von der polygonseit liegen und in der selben höhe
         return intersection_point[0] >= l2[0][0] and min(l1[0][1], l1[1][1]) < intersection_point[1] < max(l1[0][1], l1[1][1])
     return False
 

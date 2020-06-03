@@ -37,6 +37,7 @@ elif sys.argv[1].lower() in ("bunny", "elephant", "squirrel", "cow"):
 
     # bounding box
     max_coord = np.maximum.reduce([p for p in pointList])
+    print(max_coord)
     min_coord = np.minimum.reduce([p for p in pointList])
     center = (max_coord + min_coord) / 2.0
     scale = 2.0 / (max_coord[0]-min_coord[0])
@@ -51,6 +52,7 @@ else:
 def init(width, height):
     """ Initialize an OpenGL window """
     glClearColor(0.0, 0.0, 0.0, 0.0)  # background color
+
     glMatrixMode(GL_PROJECTION)  # switch to projection matrix
     glLoadIdentity()  # set to 1
     glOrtho(-1.5, 1.5, -1.5, 1.5, -1.0, 1.0)  # multiply with new p-matrix
