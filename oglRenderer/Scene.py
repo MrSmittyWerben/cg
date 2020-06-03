@@ -32,6 +32,7 @@ class Scene:
 
         self.center = (self.max_coords + self.min_coords) / 2.0
         self.scale = 2.0 / np.amax(self.max_coords - self.min_coords)
+        print('Center: ', self.center)
 
         self.points = []
 
@@ -42,22 +43,45 @@ class Scene:
 
     # render
     def render(self):
+        # clear
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # clear screen
+        glClearColor(1.0, 1.0, 1.0, 1.0)
+        glEnable(GL_LIGHT0)
+        glEnable(GL_LIGHTING)
+
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_NORMALIZE)
+
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+
+        if self.width <= self.height:
+            glOrtho(-1.5, 1.5,
+                    -1.5 * self.height / self.width, 1.5 * self.height / self.width,
+                    -1.0, 1.0)
+        else:
+            glOrtho(-1.5 * self.width / self.height, 1.5 * self.width / self.height,
+                    -1.5, 1.5,
+                    -1.0, 1.0)
+
+        glMatrixMode(GL_MODELVIEW)
 
         self.data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_NORMAL_ARRAY)
+
         glVertexPointer(3, GL_FLOAT, 24, self.data)
         glNormalPointer(GL_FLOAT, 24, self.data+12)
-        glLoadIdentity()
-        gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
-        glScale(self.scale, self.scale, self.scale)  # scale to window
-        glTranslate(-self.center[0], -self.center[1], -self.center[2])
-        glDrawArrays(GL_TRIANGLES, 0, len(self.triangles))
 
+        #glLoadIdentity()
+        #gluLookAt(0,0,4, 0,0,0, 0,1,0)
+
+        #glScale(self.scale, self.scale, self.scale)
+        glTranslate(-self.center[0], -self.center[1], -self.center[2])
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glDrawArrays(GL_TRIANGLES, 0, len(self.triangles))
         self.data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)

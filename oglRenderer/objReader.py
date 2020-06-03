@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class Triangles(object):
     def __init__(self, file):
         self.v = []  # vertices
@@ -92,5 +91,5 @@ class Triangles(object):
 
 
 if __name__ == '__main__':
-
     obj = Triangles('bunny.obj').generateObj()
+    print(obj[0][3])
