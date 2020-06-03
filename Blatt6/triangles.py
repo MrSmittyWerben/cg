@@ -33,7 +33,6 @@ for i in range(11):
         p2_1 = copy[2][1]
 
     tri = [p0, [p1_0, p1_1], [p2_0, p2_1]]
-    print(tri)
     points.extend(tri)
 
     originTri = tri

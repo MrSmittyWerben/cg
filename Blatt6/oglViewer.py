@@ -37,7 +37,7 @@ elif sys.argv[1].lower() in ("bunny", "elephant", "squirrel", "cow"):
 
     # bounding box
     max_coord = np.maximum.reduce([p for p in pointList])
-    print(max_coord)
+    print(max)
     min_coord = np.minimum.reduce([p for p in pointList])
     center = (max_coord + min_coord) / 2.0
     scale = 2.0 / (max_coord[0]-min_coord[0])

@@ -1,29 +1,3 @@
-"""
-/*******************************************************************************
- *
- *            #, #,         CCCCCC  VV    VV MM      MM RRRRRRR
- *           %  %(  #%%#   CC    CC VV    VV MMM    MMM RR    RR
- *           %    %## #    CC        V    V  MM M  M MM RR    RR
- *            ,%      %    CC        VV  VV  MM  MM  MM RRRRRR
- *            (%      %,   CC    CC   VVVV   MM      MM RR   RR
- *              #%    %*    CCCCCC     VV    MM      MM RR    RR
- *             .%    %/
- *                (%.      Computer Vision & Mixed Reality Group
- *
- ******************************************************************************/
-/**          @copyright:   Hochschule RheinMain,
- *                         University of Applied Sciences
- *              @author:   Prof. Dr. Ulrich Schwanecke
- *             @version:   0.9
- *                @date:   03.06.2019
- ******************************************************************************/
-/**         RenderWindow.py
- *
- *          Simple Python OpenGL program that uses PyOpenGL + GLFW to get an
- *          OpenGL 3.2 context and display some 2D animation.
- ****
-"""
-
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -31,39 +5,10 @@ from OpenGL.GLUT import *
 
 import numpy as np
 
+from oglRenderer.Scene import Scene
 from oglRenderer.objReader import Triangles
 
-global objFile
-
-class Scene:
-    """ OpenGL 2D scene class """
-    # initialization
-    def __init__(self, width, height):
-        # time
-        self.t = 0
-        self.showVector = True
-        self.pointsize = 3
-        self.width = width
-        self.height = height
-        glPointSize(self.pointsize)
-        glLineWidth(self.pointsize)
-
-        self.obj = Triangles(objFile).generateObj()
-
-        # bounding box
-        self.max_coords = np.maximum.reduce([p for p in self.obj[0]])[0]
-        self.min_coords = np.minimum.reduce([p for p in self.obj[0]])[0]
-
-        self.center = (self.max_coords + self.min_coords) / 2.0
-        self.scale = 2.0 / (self.max_coords - self.min_coords)
-
-    
-    # render 
-    def render(self):
-
-        pass
-
-
+global objFile, vbo
 
 class RenderWindow:
     """GLFW Rendering window class"""
@@ -107,8 +52,12 @@ class RenderWindow:
         glEnable(GL_DEPTH_TEST)
         glClearColor(1.0, 1.0, 1.0, 1.0)
         glMatrixMode(GL_PROJECTION)
-        glOrtho(-self.width/2,self.width/2,-self.height/2,self.height/2,-2,2)
         glMatrixMode(GL_MODELVIEW)
+
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_NORMALIZE)
 
         
         # set window callbacks
@@ -117,7 +66,7 @@ class RenderWindow:
         glfw.set_window_size_callback(self.window, self.onSize)
         
         # create 3D
-        self.scene = Scene(self.width, self.height)
+        self.scene = Scene(objFile, self.width, self.height)
         
         # exit flag
         self.exitNow = False
@@ -143,14 +92,27 @@ class RenderWindow:
                 # toggle animation
                 self.animation = not self.animation
 
-
-    def onSize(self, win, width, height):
+    def onSize(self, win, width, height):  # reshape
         print("onsize: ", win, width, height)
+        # prevent division by zero
+        if height == 0:
+            height = 1
+
         self.width = width
         self.height = height
         self.aspect = width/float(height)
         glViewport(0, 0, self.width, self.height)
-    
+        glMatrixMode(GL_PROJECTION)
+        if width <= height:
+            glOrtho(-1.5, 1.5,
+                    -1.5 * height / width, 1.5 * height / width,
+                    -1.0, 1.0)
+        else:
+            glOrtho(-1.5 * width / height, 1.5 * width / height,
+                    -1.5, 1.5,
+                    -1.0, 1.0)
+
+        glMatrixMode(GL_MODELVIEW)
 
     def run(self):
         # initializer timer
@@ -159,13 +121,14 @@ class RenderWindow:
         while not glfw.window_should_close(self.window) and not self.exitNow:
             # update every x seconds
             currT = glfw.get_time()
-            if currT - t > 1.0/self.frame_rate:
+            if currT - t > 1.0 / self.frame_rate:
                 # update time
                 t = currT
                 # clear
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-                
-                
+
+                self.scene.render()
+
                 glfw.swap_buffers(self.window)
                 # Poll for and process events
                 glfw.poll_events()

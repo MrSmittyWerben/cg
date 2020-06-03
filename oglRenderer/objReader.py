@@ -72,26 +72,25 @@ class Triangles(object):
             else:
                 vn1, vn2, vn3 = [0, 0, 0], [0, 0, 0], [0, 0, 0]
 
-            arr1 = np.array([v1[0], v1[1], v1[2]])
-            arr2 = np.array([v2[0], v2[1], v2[2]])
-            arr3 = np.array([v3[0], v3[1], v3[2]])
-            triangles.append((arr1, arr2, arr3))
+            arr1 = [v1[0], v1[1], v1[2]]
+            arr2 = [v2[0], v2[1], v2[2]]
+            arr3 = [v3[0], v3[1], v3[2]]
+            triangles.extend([arr1, arr2, arr3])
 
-            arr1 = np.array([vn1[0], vn1[1], vn1[2]])
-            arr2 = np.array([vn2[0], vn2[1], vn2[2]])
-            arr3 = np.array([vn3[0], vn3[1], vn3[2]])
-            normals.append((arr1, arr2, arr3))
+            arr1 = [vn1[0], vn1[1], vn1[2]]
+            arr2 = [vn2[0], vn2[1], vn2[2]]
+            arr3 = [vn3[0], vn3[1], vn3[2]]
+            normals.extend([arr1, arr2, arr3])
 
-            arr1 = np.array([vt1[0], vt1[1], vt1[2]])
-            arr2 = np.array([vt2[0], vt2[1], vt2[2]])
-            arr3 = np.array([vt3[0], vt3[1], vt3[2]])
-            texture.append((arr1, arr2, arr3))
+            arr1 = [vt1[0], vt1[1], vt1[2]]
+            arr2 = [vt2[0], vt2[1], vt2[2]]
+            arr3 = [vt3[0], vt3[1], vt3[2]]
+            texture.extend([arr1, arr2, arr3])
 
         #  no texture anyway for our points
         return triangles, normals
 
 
 if __name__ == '__main__':
-    obj = Triangles('bunny.obj')
 
-    print(obj.generateObj())
+    obj = Triangles('bunny.obj').generateObj()
