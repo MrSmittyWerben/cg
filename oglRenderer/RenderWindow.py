@@ -9,17 +9,19 @@ from oglRenderer.Scene import Scene
 
 global objFile, vbo
 
+
 class RenderWindow:
     """GLFW Rendering window class"""
+
     def __init__(self):
-        
+
         # save current working directory
         cwd = os.getcwd()
-        
+
         # Initialize the library
         if not glfw.init():
             return
-        
+
         # restore cwd
         os.chdir(cwd)
 
@@ -28,7 +30,7 @@ class RenderWindow:
 
         # make a window
         self.width, self.height = 640, 480
-        self.aspect = self.width/float(self.height)
+        self.aspect = self.width / float(self.height)
         self.window = glfw.create_window(self.width, self.height, "2D Graphics", None, None)
         if not self.window:
             glfw.terminate()
@@ -42,13 +44,13 @@ class RenderWindow:
         glfw.set_cursor_pos_callback(self.window, self.mouseMoved)
         glfw.set_key_callback(self.window, self.onKeyboard)
         glfw.set_window_size_callback(self.window, self.onSize)
-        
+
         # create 3D
         self.scene = Scene(objFile, self.width, self.height)
 
         # exit flag
         self.exitNow = False
-    
+
     def onMouseButton(self, win, button, action, mods):
         print("mouse button: ", win, button, action, mods)
         r = min(self.width, self.height) / 2.0
@@ -76,6 +78,17 @@ class RenderWindow:
             if key == glfw.KEY_ESCAPE:
                 self.exitNow = True
 
+            ## orthogonal <-> perspective
+            if key == glfw.KEY_O:
+                self.scene.perspective = False
+                glfw.set_window_title(win, '2D Scene - Orthographic')
+
+            if key == glfw.KEY_P:
+                self.scene.perspective = True
+                glfw.set_window_title(win, '2D Scene - Perspective')
+
+            ## COLORS
+
             if mods == glfw.MOD_SHIFT:  # shift pressed (background color)
                 if key == glfw.KEY_S:  # black
                     self.scene.actBgColor = self.scene.colors['BLACK']
@@ -100,7 +113,6 @@ class RenderWindow:
                 if key == glfw.KEY_G:  # yellow
                     self.scene.actColor = self.scene.colors['YELLOW']
 
-
     def onSize(self, win, width, height):  # reshape
         print("onsize: ", win, width, height)
         # prevent division by zero
@@ -109,24 +121,30 @@ class RenderWindow:
 
         self.width = width
         self.height = height
-        self.aspect = width/float(height)
+        self.aspect = width / float(height)
         glViewport(0, 0, self.width, self.height)
+        print('WIDTH: ', self.width, ' HEIGHT: ', self.height, ' ASPECT: ', self.aspect)
         glMatrixMode(GL_PROJECTION)
-        if width <= height:
-            glOrtho(-1.5, 1.5,
-                    -1.5 * height / width, 1.5 * height / width,
-                    -1.0, 1.0)
+        glLoadIdentity()
+        if self.scene.perspective:
+            gluPerspective(45, self.aspect, 0.1, 100)
+            gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
+
         else:
-            glOrtho(-1.5 * width / height, 1.5 * width / height,
-                    -1.5, 1.5,
-                    -1.0, 1.0)
+            if width <= height:
+                glOrtho(-1.5, 1.5,
+                        -1.5 * height / width, 1.5 * height / width,
+                        -1.0, 1.0)
+            else:
+                glOrtho(-1.5 * width / height, 1.5 * width / height,
+                        -1.5, 1.5,
+                        -1.0, 1.0)
 
         glMatrixMode(GL_MODELVIEW)
 
     def run(self):
 
         while not glfw.window_should_close(self.window) and not self.exitNow:
-
             self.scene.render()
 
             glfw.swap_buffers(self.window)
@@ -138,7 +156,7 @@ class RenderWindow:
 
 # main() function
 def main():
-    print("Simple glfw render Window")    
+    print("Simple glfw render Window")
     rw = RenderWindow()
     rw.run()
 

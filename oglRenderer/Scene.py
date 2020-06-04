@@ -68,6 +68,9 @@ class Scene:
         # object
         self.triangles, self.norms = Triangles(self.objFile).generateObj()
 
+        # perspective
+        self.perspective = False
+
         # bounding box
         self.max_coords = np.maximum.reduce([p for p in self.triangles])
         self.min_coords = np.minimum.reduce([p for p in self.triangles])
@@ -85,6 +88,9 @@ class Scene:
 
     # render
     def render(self):
+        # clear
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
         glClearColor(*self.actBgColor)
         glEnable(GL_LIGHT0)
         glEnable(GL_LIGHTING)
@@ -92,18 +98,16 @@ class Scene:
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_NORMALIZE)
 
+        # Projection
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-
-        glOrtho(-1.5, 1.5, -1.5, 1.5, -1.0, 1.0)
-
-        glMatrixMode(GL_MODELVIEW)
+        if self.perspective:
+            gluPerspective(45, self.width/float(self.height), 0.1, 100)
+            gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)  # wont affect glOrtho
+        else:
+            glOrtho(-1.5, 1.5, -1.5, 1.5, -1.0, 1.0)
 
         glColor(*self.actColor)
-
-        # clear
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glLoadIdentity()
 
         self.data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
@@ -112,8 +116,10 @@ class Scene:
         glVertexPointer(3, GL_FLOAT, 24, self.data)
         glNormalPointer(GL_FLOAT, 24, self.data + 12)
 
-        # gluLookAt(0,0,4, 0,0,0, 0,1,0)
-        glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))
+        # Modelview
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))  # arcball
         glScale(self.scale, self.scale, self.scale)
         glTranslate(-self.center[0], -self.center[1], -self.center[2])
 
@@ -123,14 +129,12 @@ class Scene:
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
-
         glFlush()
 
     def rotate(self, angle, axis):
         c, mc = np.cos(angle), 1 - np.cos(angle)
         s = np.sin(angle)
         l = np.sqrt(np.dot(axis, axis)) if np.sqrt(np.dot(axis, axis)) != 0.0 else 0.1
-        print(l)
         x, y, z = axis / l
 
         r = np.array([

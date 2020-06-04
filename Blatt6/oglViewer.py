@@ -51,7 +51,7 @@ else:
 
 def init(width, height):
     """ Initialize an OpenGL window """
-    glClearColor(0.0, 0.0, 0.0, 0.0)  # background color
+    glClearColor(1.0, 1.0, 1.0, 1.0)  # background color
 
     glMatrixMode(GL_PROJECTION)  # switch to projection matrix
     glLoadIdentity()  # set to 1
@@ -99,6 +99,7 @@ def reshape(width, height):
         glOrtho(-1.5 * width / height, 1.5 * width / height,
                 -1.5, 1.5,
                 -1.0, 1.0)
+
     glMatrixMode(GL_MODELVIEW)
 
 
