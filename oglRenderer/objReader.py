@@ -64,12 +64,12 @@ class Triangles(object):
             else:
                 vt1, vt2, vt3 = [0, 0, 0], [0, 0, 0], [0, 0, 0]
 
-            if faces [0][2] != 0:
+            if faces[0][2] != 0:
                 vn1 = self.vn[faces[0][2] - 1]
                 vn2 = self.vn[faces[1][2] - 1]
                 vn3 = self.vn[faces[2][2] - 1]
             else:
-                vn1, vn2, vn3 = [0, 0, 0], [0, 0, 0], [0, 0, 0]
+                vn1, vn2, vn3 = calcNorm(v1,v2,v3)
 
             arr1 = [v1[0], v1[1], v1[2]]
             arr2 = [v2[0], v2[1], v2[2]]
@@ -89,7 +89,24 @@ class Triangles(object):
         #  no texture anyway for our points
         return triangles, normals
 
+def calcNorm(v1,v2,v3):
+    l2 = []
+    l3 = []
+
+    for item1, item2 in zip(v2,v1):
+        l2.append(item1-item2)
+
+    for item1, item2 in zip(v3,v1):
+        l3.append(item1-item2)
+
+    normal = np.cross(l2, l3)
+
+    normalized = normal/ np.linalg.norm(normal)
+
+    print(normal)
+
+    return normalized, normalized, normalized
 
 if __name__ == '__main__':
-    obj = Triangles('bunny.obj').generateObj()
-    print(obj[0][3])
+    obj = Triangles('cow.obj').generateObj()
+    print(obj[1])

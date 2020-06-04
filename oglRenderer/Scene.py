@@ -37,14 +37,13 @@ class Scene:
         self.points = []
 
         for (v, vn) in zip(self.triangles, self.norms):
-            self.points.append([v[0]+vn[0], v[1]+vn[1], v[2]+vn[2]])
+            self.points.extend(v)
+            self.points.extend(vn)
 
         self.data = vbo.VBO(np.array(self.points, 'f'))
 
     # render
     def render(self):
-        # clear
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glClearColor(1.0, 1.0, 1.0, 1.0)
         glEnable(GL_LIGHT0)
@@ -56,16 +55,15 @@ class Scene:
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
 
-        if self.width <= self.height:
-            glOrtho(-1.5, 1.5,
-                    -1.5 * self.height / self.width, 1.5 * self.height / self.width,
-                    -1.0, 1.0)
-        else:
-            glOrtho(-1.5 * self.width / self.height, 1.5 * self.width / self.height,
-                    -1.5, 1.5,
-                    -1.0, 1.0)
+        glOrtho(-1.5, 1.5, -1.5, 1.5, -1.0, 1.0)
 
         glMatrixMode(GL_MODELVIEW)
+
+        glColor3f(.75, .75, .75)
+
+        # clear
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glLoadIdentity()
 
         self.data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
@@ -74,15 +72,16 @@ class Scene:
         glVertexPointer(3, GL_FLOAT, 24, self.data)
         glNormalPointer(GL_FLOAT, 24, self.data+12)
 
-        #glLoadIdentity()
         #gluLookAt(0,0,4, 0,0,0, 0,1,0)
 
-        #glScale(self.scale, self.scale, self.scale)
+        glScale(self.scale, self.scale, self.scale)
         glTranslate(-self.center[0], -self.center[1], -self.center[2])
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        #glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glDrawArrays(GL_TRIANGLES, 0, len(self.triangles))
         self.data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
+
+        glFlush()

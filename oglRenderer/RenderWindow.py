@@ -105,7 +105,7 @@ def main():
 if __name__ == '__main__':
 
     if len(sys.argv) == 2:
-        if sys.argv[1].lower() in ('bunny', 'cow', 'squirrel', 'elephant'):
+        if sys.argv[1].lower() in ('bunny', 'cow', 'squirrel', 'squirrel2', 'elephant'):
             objFile = f"{sys.argv[1].lower()}.obj"
     else:
         sys.exit(-1)
