@@ -1,3 +1,5 @@
+import math
+
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -40,6 +42,7 @@ class RenderWindow:
 
         # set window callbacks
         glfw.set_mouse_button_callback(self.window, self.onMouseButton)
+        glfw.set_cursor_pos_callback(self.window, self.mouseMoved)
         glfw.set_key_callback(self.window, self.onKeyboard)
         glfw.set_window_size_callback(self.window, self.onSize)
         
@@ -51,6 +54,23 @@ class RenderWindow:
     
     def onMouseButton(self, win, button, action, mods):
         print("mouse button: ", win, button, action, mods)
+        r = min(self.width, self.height) / 2.0
+        if button == glfw.MOUSE_BUTTON_LEFT:
+            if action == glfw.PRESS:
+                x, y = glfw.get_cursor_pos(win)
+                self.scene.doRotation = True
+                self.scene.startP = self.scene.projectOnSpehre(x, y, r)
+            elif action == glfw.RELEASE:
+                self.scene.doRotation = False
+                self.scene.actOri = np.dot(self.scene.actOri, self.scene.rotate(self.scene.angle, self.scene.axis))
+                self.scene.angle = 0
+
+    def mouseMoved(self, window, x, y):
+        if self.scene.doRotation:
+            r = min(self.width, self.height) / 2.0
+            self.scene.moveP = self.scene.projectOnSpehre(x, y, r)
+            self.scene.angle = np.arccos(np.dot(self.scene.startP, self.scene.moveP))
+            self.scene.axis = np.cross(self.scene.startP, self.scene.moveP)
 
     def onKeyboard(self, win, key, scancode, action, mods):
         print("keyboard: ", win, key, scancode, action, mods)

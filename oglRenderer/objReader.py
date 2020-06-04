@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Triangles(object):
     def __init__(self, file):
         self.v = []  # vertices
@@ -100,10 +101,7 @@ def calcNorm(v1,v2,v3):
         l3.append(item1-item2)
 
     normal = np.cross(l2, l3)
-
-    normalized = normal/ np.linalg.norm(normal)
-
-    print(normal)
+    normalized = normal / np.linalg.norm(normal)
 
     return normalized, normalized, normalized
 
