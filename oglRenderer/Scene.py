@@ -87,7 +87,8 @@ class Scene:
         self.data = vbo.VBO(np.array(self.points, 'f'))
 
     # render
-    def render(self):
+    def render(self, width, height):
+
         # clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -102,10 +103,20 @@ class Scene:
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         if self.perspective:
-            gluPerspective(45, self.width/float(self.height), 0.1, 100)
+            gluPerspective(45, width/float(height), 0.1, 100)
             gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)  # wont affect glOrtho
         else:
-            glOrtho(-1.5, 1.5, -1.5, 1.5, -1.0, 1.0)
+            if width <= height:
+                glOrtho(-1.5, 1.5,
+                        -1.5 * height / width, 1.5 * height / width,
+                        -1.0, 1.0)
+            else:
+                glOrtho(-1.5 * width / height, 1.5 * width / height,
+                        -1.5, 1.5,
+                        -1.0, 1.0)
+
+        # Modelview
+        glMatrixMode(GL_MODELVIEW)
 
         glColor(*self.actColor)
 
@@ -116,8 +127,7 @@ class Scene:
         glVertexPointer(3, GL_FLOAT, 24, self.data)
         glNormalPointer(GL_FLOAT, 24, self.data + 12)
 
-        # Modelview
-        glMatrixMode(GL_MODELVIEW)
+
         glLoadIdentity()
         glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))  # arcball
         glScale(self.scale, self.scale, self.scale)

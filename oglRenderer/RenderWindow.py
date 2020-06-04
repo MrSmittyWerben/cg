@@ -123,7 +123,6 @@ class RenderWindow:
         self.height = height
         self.aspect = width / float(height)
         glViewport(0, 0, self.width, self.height)
-        print('WIDTH: ', self.width, ' HEIGHT: ', self.height, ' ASPECT: ', self.aspect)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         if self.scene.perspective:
@@ -145,7 +144,7 @@ class RenderWindow:
     def run(self):
 
         while not glfw.window_should_close(self.window) and not self.exitNow:
-            self.scene.render()
+            self.scene.render(self.width, self.height)
 
             glfw.swap_buffers(self.window)
             # Poll for and process events
