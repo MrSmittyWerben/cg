@@ -23,11 +23,40 @@ class Scene:
         glPointSize(self.pointsize)
         glLineWidth(self.pointsize)
 
+        # Colors
+        self.red = 1.0, 0.0, 0.0, 1.0
+        self.green = 0.0, 1.0, 0.0, 1.0
+        self.blue = 0.0, 0.0, 1.0, 1.0
+        self.yellow = 1.0, 1.0, 0.0, 1.0
+        self.white = 1.0, 1.0, 1.0, 1.0
+        self.black = 0.0, 0.0, 0.0, 1.0
+
+        self.colors = {
+            'RED': self.red,
+            'GREEN': self.green,
+            'BLUE': self.blue,
+            'YELLOW': self.yellow,
+            'WHITE': self.white,
+            'BLACK': self.black
+        }
+
+        self.bgColors = {
+            'RED': self.red,
+            'GREEN': self.green,
+            'BLUE': self.blue,
+            'YELLOW': self.yellow,
+            'WHITE': self.white,
+            'BLACK': self.black
+        }
+
+        self.actColor = 0.75, 0.75, 0.75, 1.0
+        self.actBgColor = 1.0, 1.0, 1.0, 1.0
+
         # Movement
         self.startP = 0
         self.moveP = 0
         self.doRotation = False
-        self.axis = np.array([1,0,0])
+        self.axis = np.array([1, 0, 0])
         self.angle = 0.1
         self.actOri = np.array([
             [1, 0, 0, 0],
@@ -36,6 +65,7 @@ class Scene:
             [0, 0, 0, 1]
         ])
 
+        # object
         self.triangles, self.norms = Triangles(self.objFile).generateObj()
 
         # bounding box
@@ -55,10 +85,10 @@ class Scene:
 
     # render
     def render(self):
-        glClearColor(1.0, 1.0, 1.0, 1.0)
+        glClearColor(*self.actBgColor)
         glEnable(GL_LIGHT0)
         glEnable(GL_LIGHTING)
-
+        glEnable(GL_COLOR_MATERIAL)
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_NORMALIZE)
 
@@ -69,7 +99,7 @@ class Scene:
 
         glMatrixMode(GL_MODELVIEW)
 
-        glColor3f(.75, .75, .75)
+        glColor(*self.actColor)
 
         # clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -87,22 +117,21 @@ class Scene:
         glScale(self.scale, self.scale, self.scale)
         glTranslate(-self.center[0], -self.center[1], -self.center[2])
 
-        #glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
         self.data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
 
-
         glFlush()
 
     def rotate(self, angle, axis):
         c, mc = np.cos(angle), 1 - np.cos(angle)
         s = np.sin(angle)
-        l = np.sqrt(np.dot(axis, axis))
+        l = np.sqrt(np.dot(axis, axis)) if np.sqrt(np.dot(axis, axis)) != 0.0 else 0.1
+        print(l)
         x, y, z = axis / l
-        print(axis)
 
         r = np.array([
             [x * x * mc + c, x * y * mc - z * s, x * z * mc + y * s, 0],
@@ -119,4 +148,3 @@ class Scene:
         z = np.sqrt(r * r - a)
         l = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         return x / l, y / l, z / l
-

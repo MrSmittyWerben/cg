@@ -1,5 +1,3 @@
-import math
-
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -8,7 +6,6 @@ from OpenGL.GLUT import *
 import numpy as np
 
 from oglRenderer.Scene import Scene
-from oglRenderer.objReader import Triangles
 
 global objFile, vbo
 
@@ -78,6 +75,31 @@ class RenderWindow:
             # ESC to quit
             if key == glfw.KEY_ESCAPE:
                 self.exitNow = True
+
+            if mods == glfw.MOD_SHIFT:  # shift pressed (background color)
+                if key == glfw.KEY_S:  # black
+                    self.scene.actBgColor = self.scene.colors['BLACK']
+                if key == glfw.KEY_W:  # white
+                    self.scene.actBgColor = self.scene.colors['WHITE']
+                if key == glfw.KEY_R:  # red
+                    self.scene.actBgColor = self.scene.colors['RED']
+                if key == glfw.KEY_B:  # blue
+                    self.scene.actBgColor = self.scene.colors['BLUE']
+                if key == glfw.KEY_G:  # yellow
+                    self.scene.actBgColor = self.scene.colors['YELLOW']
+
+            else:  # shift not pressed ( object color)
+                if key == glfw.KEY_S:  # black
+                    self.scene.actColor = self.scene.colors['BLACK']
+                if key == glfw.KEY_W:  # white
+                    self.scene.actColor = self.scene.colors['WHITE']
+                if key == glfw.KEY_R:  # red
+                    self.scene.actColor = self.scene.colors['RED']
+                if key == glfw.KEY_B:  # blue
+                    self.scene.actColor = self.scene.colors['BLUE']
+                if key == glfw.KEY_G:  # yellow
+                    self.scene.actColor = self.scene.colors['YELLOW']
+
 
     def onSize(self, win, width, height):  # reshape
         print("onsize: ", win, width, height)
