@@ -44,16 +44,32 @@ class RenderWindow:
         glfw.set_cursor_pos_callback(self.window, self.mouseMoved)
         glfw.set_key_callback(self.window, self.onKeyboard)
         glfw.set_window_size_callback(self.window, self.onSize)
+        glfw.set_scroll_callback(self.window, self.onScroll)
 
         # create 3D
         self.scene = Scene(objFile, self.width, self.height)
+        if self.scene.hasShadow:
+            self.renderShadow()
 
         # exit flag
         self.exitNow = False
 
+    def renderShadow(self):
+
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glTranslate(self.scene.light[0], self.scene.light[1], self.scene.light[2])
+        glMultMatrixf(self.scene.p)
+        glTranslate(-self.scene.light[0], -self.scene.light[1], -self.scene.light[2])
+        glColor3f(0.0, 0.0, 0.0)
+
+        self.scene.render(self.width, self.height)
+        glPopMatrix()
+
     def onMouseButton(self, win, button, action, mods):
         print("mouse button: ", win, button, action, mods)
         r = min(self.width, self.height) / 2.0
+        ## Rotation
         if button == glfw.MOUSE_BUTTON_LEFT:
             if action == glfw.PRESS:
                 x, y = glfw.get_cursor_pos(win)
@@ -64,12 +80,24 @@ class RenderWindow:
                 self.scene.actOri = np.dot(self.scene.actOri, self.scene.rotate(self.scene.angle, self.scene.axis))
                 self.scene.angle = 0
 
+        ## Zoom
+        if button == glfw.MOUSE_BUTTON_MIDDLE:
+            self.scene.zoomFactor += 0.1
+
     def mouseMoved(self, window, x, y):
         if self.scene.doRotation:
             r = min(self.width, self.height) / 2.0
             self.scene.moveP = self.scene.projectOnSpehre(x, y, r)
-            self.scene.angle = np.arccos(np.dot(self.scene.startP, self.scene.moveP))
+            dot = np.dot(self.scene.startP, self.scene.moveP)
+            if dot < -1:  # arccos values must be between -1 and 1
+                dot = -1
+            if dot > 1:
+                dot = 1
+            self.scene.angle = np.arccos(dot)
             self.scene.axis = np.cross(self.scene.startP, self.scene.moveP)
+
+    def onScroll(self, win, xOff, yOff):
+        self.scene.zoomFactor += 0.1 if yOff > 0 else -0.1
 
     def onKeyboard(self, win, key, scancode, action, mods):
         print("keyboard: ", win, key, scancode, action, mods)
@@ -86,6 +114,7 @@ class RenderWindow:
             if key == glfw.KEY_P:
                 self.scene.perspective = True
                 glfw.set_window_title(win, '2D Scene - Perspective')
+
 
             ## COLORS
 
@@ -145,6 +174,8 @@ class RenderWindow:
 
         while not glfw.window_should_close(self.window) and not self.exitNow:
             self.scene.render(self.width, self.height)
+            #if self.scene.hasShadow:
+                #self.scene.renderShadow()
 
             glfw.swap_buffers(self.window)
             # Poll for and process events

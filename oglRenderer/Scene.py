@@ -56,7 +56,7 @@ class Scene:
         self.startP = 0
         self.moveP = 0
         self.doRotation = False
-        self.axis = np.array([1, 0, 0])
+        self.axis = np.array([1, 1, 0])
         self.angle = 0.1
         self.actOri = np.array([
             [1, 0, 0, 0],
@@ -64,6 +64,16 @@ class Scene:
             [0, 0, 1, 0],
             [0, 0, 0, 1]
         ])
+
+        # zoom
+        self.zoomFactor = 1
+
+        # shadows
+        self.hasShadow = True
+
+        # Lightsource
+        self.light = [-10, 10, 10]
+        self.p = [1.0, 0, 0, 0, 0, 1.0, 0, -1.0/self.light[1], 0, 0, 1.0, 0, 0, 0, 0, 0]
 
         # object
         self.triangles, self.norms = Triangles(self.objFile).generateObj()
@@ -76,7 +86,7 @@ class Scene:
         self.min_coords = np.minimum.reduce([p for p in self.triangles])
 
         self.center = (self.max_coords + self.min_coords) / 2.0
-        self.scale = 2.0 / np.amax(self.max_coords - self.min_coords)
+        self.scale = (2.0 / np.amax(self.max_coords - self.min_coords))
 
         self.points = []
 
@@ -84,10 +94,10 @@ class Scene:
             self.points.extend(v)
             self.points.extend(vn)
 
-        self.data = vbo.VBO(np.array(self.points, 'f'))
-
     # render
     def render(self, width, height):
+        print(self.zoomFactor)
+        data = vbo.VBO(np.array(self.points, 'f'))
 
         # clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -103,7 +113,7 @@ class Scene:
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         if self.perspective:
-            gluPerspective(45, width/float(height), 0.1, 100)
+            gluPerspective(45, width / float(height), 0.1, 100)
             gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)  # wont affect glOrtho
         else:
             if width <= height:
@@ -120,22 +130,21 @@ class Scene:
 
         glColor(*self.actColor)
 
-        self.data.bind()
+        data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_NORMAL_ARRAY)
 
-        glVertexPointer(3, GL_FLOAT, 24, self.data)
-        glNormalPointer(GL_FLOAT, 24, self.data + 12)
-
+        glVertexPointer(3, GL_FLOAT, 24, data)
+        glNormalPointer(GL_FLOAT, 24, data + 12)
 
         glLoadIdentity()
         glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))  # arcball
-        glScale(self.scale, self.scale, self.scale)
+        glScale(self.scale*self.zoomFactor, self.scale*self.zoomFactor, self.scale*self.zoomFactor)
         glTranslate(-self.center[0], -self.center[1], -self.center[2])
 
         # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
-        self.data.unbind()
+        data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
@@ -162,3 +171,10 @@ class Scene:
         z = np.sqrt(r * r - a)
         l = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         return x / l, y / l, z / l
+
+
+
+
+
+
+
