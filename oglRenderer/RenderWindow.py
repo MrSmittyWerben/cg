@@ -46,6 +46,13 @@ class RenderWindow:
         glfw.set_window_size_callback(self.window, self.onSize)
         glfw.set_scroll_callback(self.window, self.onScroll)
 
+        # cursor position
+        self.currentPosX = 0
+        self.currentPosY = 0
+
+        self.lastPosX = 0
+        self.lastPosY = 0
+
         # create 3D
         self.scene = Scene(objFile, self.width, self.height)
         if self.scene.hasShadow:
@@ -80,6 +87,12 @@ class RenderWindow:
                 self.scene.actOri = np.dot(self.scene.actOri, self.scene.rotate(self.scene.angle, self.scene.axis))
                 self.scene.angle = 0
 
+        if button == glfw.MOUSE_BUTTON_RIGHT:
+            if action == glfw.PRESS:
+                self.scene.doMove = True
+            elif action == glfw.RELEASE:
+                self.scene.doMove = False
+
         ## Zoom
         if button == glfw.MOUSE_BUTTON_MIDDLE:
             self.scene.zoomFactor += 0.1
@@ -96,6 +109,18 @@ class RenderWindow:
             self.scene.angle = np.arccos(dot)
             self.scene.axis = np.cross(self.scene.startP, self.scene.moveP)
 
+        if self.scene.doMove:
+            offX = x - self.lastPosX
+            offY = y - self.lastPosY
+
+            self.currentPosX -= 2*offX/self.width  # division/multiplication to move more naturally
+            self.currentPosY += 2*offY/self.height
+
+            self.scene.coords = (self.currentPosX, self.currentPosY)
+
+        self.lastPosX = x
+        self.lastPosY = y
+
     def onScroll(self, win, xOff, yOff):
         if self.scene.zoomFactor < 0.1:
             self.scene.zoomFactor = 0.1
@@ -104,7 +129,7 @@ class RenderWindow:
             self.scene.zoomFactor = 2
 
         else:
-            self.scene.zoomFactor += 0.05 if yOff > 0 else -0.05 # zoom step
+            self.scene.zoomFactor += 0.1 if yOff > 0 else -0.1  # zoom step
 
     def onKeyboard(self, win, key, scancode, action, mods):
         print("keyboard: ", win, key, scancode, action, mods)

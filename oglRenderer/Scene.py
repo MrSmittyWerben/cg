@@ -52,7 +52,7 @@ class Scene:
         self.actColor = 0.75, 0.75, 0.75, 1.0
         self.actBgColor = 1.0, 1.0, 1.0, 1.0
 
-        # Movement
+        # Rotation
         self.startP = 0
         self.moveP = 0
         self.doRotation = False
@@ -64,6 +64,10 @@ class Scene:
             [0, 0, 1, 0],
             [0, 0, 0, 1]
         ])
+
+        # movement
+        self.doMove = False
+        self.coords = (0,0)
 
         # zoom
         self.zoomFactor = 1
@@ -96,7 +100,6 @@ class Scene:
 
     # render
     def render(self, width, height):
-        print(self.zoomFactor)
         data = vbo.VBO(np.array(self.points, 'f'))
 
         # clear
@@ -138,11 +141,12 @@ class Scene:
         glNormalPointer(GL_FLOAT, 24, data + 12)
 
         glLoadIdentity()
+        glTranslate(-self.coords[0], -self.coords[1], 0)
         glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))  # arcball
         glScale(self.scale*self.zoomFactor, self.scale*self.zoomFactor, self.scale*self.zoomFactor)
         glTranslate(-self.center[0], -self.center[1], -self.center[2])
 
-        # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        #glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
         data.unbind()
 
