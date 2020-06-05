@@ -174,6 +174,12 @@ class RenderWindow:
                 if key == glfw.KEY_G:  # yellow
                     self.scene.actColor = self.scene.colors['YELLOW']
 
+                if key == glfw.KEY_H:  # shadows
+                    self.scene.hasShadow = not self.scene.hasShadow
+
+                if key == glfw.KEY_N:  # shadows
+                    self.scene.polygonMode = not self.scene.polygonMode
+
     def onSize(self, win, width, height):  # reshape
         print("onsize: ", win, width, height)
         # prevent division by zero
@@ -206,8 +212,6 @@ class RenderWindow:
 
         while not glfw.window_should_close(self.window) and not self.exitNow:
             self.scene.render(self.width, self.height)
-            #if self.scene.hasShadow:
-                #self.scene.renderShadow()
 
             glfw.swap_buffers(self.window)
             # Poll for and process events
@@ -229,6 +233,9 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         if sys.argv[1].lower() in ('bunny', 'cow', 'squirrel', 'squirrel2', 'elephant'):
             objFile = f"{sys.argv[1].lower()}.obj"
+        else:
+            print('Invalid arguments received!')
+            sys.exit(-1)
     else:
         sys.exit(-1)
 

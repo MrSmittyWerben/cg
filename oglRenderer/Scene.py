@@ -52,6 +52,9 @@ class Scene:
         self.actColor = 0.75, 0.75, 0.75, 1.0
         self.actBgColor = 1.0, 1.0, 1.0, 1.0
 
+        # Polygonmode
+        self.polygonMode = False
+
         # Rotation
         self.startP = 0
         self.moveP = 0
@@ -67,15 +70,13 @@ class Scene:
 
         # movement
         self.doMove = False
-        self.coords = (0,0)
+        self.coords = (0, 0)
 
         # zoom
         self.zoomFactor = 1
 
         # shadows
-        self.hasShadow = True
-
-        # Lightsource
+        self.hasShadow = False
         self.light = [-10, 10, 10]
         self.p = [1.0, 0, 0, 0, 0, 1.0, 0, -1.0/self.light[1], 0, 0, 1.0, 0, 0, 0, 0, 0]
 
@@ -101,6 +102,8 @@ class Scene:
     # render
     def render(self, width, height):
         data = vbo.VBO(np.array(self.points, 'f'))
+
+        print(self.hasShadow)
 
         # clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -146,12 +149,28 @@ class Scene:
         glScale(self.scale*self.zoomFactor, self.scale*self.zoomFactor, self.scale*self.zoomFactor)
         glTranslate(-self.center[0], -self.center[1], -self.center[2])
 
-        #glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        if self.polygonMode:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
+
+        if self.hasShadow:
+            glPushMatrix()
+            glDisable(GL_LIGHTING)
+            glDisable(GL_LIGHT0)
+            glMatrixMode(GL_MODELVIEW)
+            glTranslate(self.light[0], self.light[1], self.light[2])
+            glMultMatrixf(self.p)
+            glTranslate(-self.light[0], -self.light[1], -self.light[2])
+            glColor3f(0.0, 0.0, 0.0)
+            glDrawArrays(GL_TRIANGLES, 0, len(self.points))
+            glPopMatrix()
+
         data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
+
         glFlush()
 
     def rotate(self, angle, axis):
@@ -175,7 +194,6 @@ class Scene:
         z = np.sqrt(r * r - a)
         l = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         return x / l, y / l, z / l
-
 
 
 
