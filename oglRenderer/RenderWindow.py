@@ -97,7 +97,14 @@ class RenderWindow:
             self.scene.axis = np.cross(self.scene.startP, self.scene.moveP)
 
     def onScroll(self, win, xOff, yOff):
-        self.scene.zoomFactor += 0.1 if yOff > 0 else -0.1
+        if self.scene.zoomFactor < 0.1:
+            self.scene.zoomFactor = 0.1
+
+        elif self.scene.zoomFactor > 2:
+            self.scene.zoomFactor = 2
+
+        else:
+            self.scene.zoomFactor += 0.05 if yOff > 0 else -0.05 # zoom step
 
     def onKeyboard(self, win, key, scancode, action, mods):
         print("keyboard: ", win, key, scancode, action, mods)
