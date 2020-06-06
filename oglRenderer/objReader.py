@@ -112,27 +112,26 @@ class Triangles(object):
         return self.triangles, self.normals
 
     def calcNorm(self):
+        # get average normals for gouraud shading
 
-        out = {tuple(vert): (0, 0, 0) for vert in self.v}
+        normals = {tuple(vert): (0, 0, 0) for vert in self.v}
 
         for i in range(0, len(self.triangles), 3):
             v1 = np.array(self.triangles[i + 1]) - np.array(self.triangles[i])
             v2 = np.array(self.triangles[i + 2]) - np.array(self.triangles[i])
             n = np.cross(v1, v2)
             n = n / np.linalg.norm(n)
-            out[tuple(self.triangles[i])] = out[tuple(self.triangles[i])] + n
-            out[tuple(self.triangles[i + 1])] = out[tuple(self.triangles[i + 1])] + n
-            out[tuple(self.triangles[i + 2])] = out[tuple(self.triangles[i + 2])] + n
+            normals[tuple(self.triangles[i])] = normals[tuple(self.triangles[i])] + n
+            normals[tuple(self.triangles[i + 1])] = normals[tuple(self.triangles[i + 1])] + n
+            normals[tuple(self.triangles[i + 2])] = normals[tuple(self.triangles[i + 2])] + n
 
-        new_norms = []
-
-        for k in out.keys():
-            normal = out[k]
+        for k in normals.keys():
+            normal = normals[k]
             d = np.linalg.norm(normal)
             if d > 0:
-                out[k] = normal/d
+                normals[k] = normal/d
 
-        return out
+        return normals
 
 
 if __name__ == '__main__':
