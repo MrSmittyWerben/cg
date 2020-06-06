@@ -81,7 +81,7 @@ class Scene:
         self.ambient = [0.0, 1.0, 1.0, 1.0]
         self.diffuse = [1.0, 1.0, 1.0, 0.6]
         self.specular = [1.0, 1.0, 1.0, 0.2]
-        self.shiny = 50
+        self.shiny = 10
         self.p = np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -120,14 +120,11 @@ class Scene:
 
         glEnable(GL_LIGHT0)
         glLightfv(GL_LIGHT0, GL_POSITION, self.light)
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, self.ambient)
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, self.diffuse)
-        glLightfv(GL_LIGHT0, GL_SPECULAR, self.specular)
 
         glEnable(GL_LIGHTING)
-        glMaterial(GL_FRONT_AND_BACK, GL_SPECULAR, self.specular)
-        glMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE, self.diffuse)
         glMaterial(GL_FRONT_AND_BACK, GL_AMBIENT, self.ambient)
+        glMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE, self.diffuse)
+        glMaterial(GL_FRONT_AND_BACK, GL_SPECULAR, self.specular)
         glMaterial(GL_FRONT_AND_BACK, GL_SHININESS, self.shiny)
 
         glEnable(GL_COLOR_MATERIAL)
