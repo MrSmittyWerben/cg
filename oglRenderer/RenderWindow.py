@@ -113,8 +113,8 @@ class RenderWindow:
             offX = x - self.lastPosX
             offY = y - self.lastPosY
 
-            self.currentPosX -= 2*offX/self.width  # division/multiplication to move more naturally
-            self.currentPosY += 2*offY/self.height
+            self.currentPosX -= 2 * offX/self.width  # division/multiplication to move more naturally
+            self.currentPosY += 2 * offY/self.height
 
             self.scene.coords = (self.currentPosX, self.currentPosY)
 
@@ -185,6 +185,9 @@ class RenderWindow:
         # prevent division by zero
         if height == 0:
             height = 1
+
+        if width == 0:
+            width = 1
 
         self.width = width
         self.height = height

@@ -60,7 +60,7 @@ class Scene:
         self.moveP = 0
         self.doRotation = False
         self.axis = np.array([1, 1, 0])
-        self.angle = 0.1
+        self.angle = 0
         self.actOri = np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -77,8 +77,13 @@ class Scene:
 
         # shadows
         self.hasShadow = False
-        self.light = [-10, 10, 10]
-        self.p = [1.0, 0, 0, 0, 0, 1.0, 0, -1.0/self.light[1], 0, 0, 1.0, 0, 0, 0, 0, 0]
+        self.light = [-10, -10, -10]
+        self.p = np.array([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 1/(-self.light[1]), 0, 0]
+        ]).transpose()
 
         # object
         self.triangles, self.norms = Triangles(self.objFile).generateObj()
@@ -99,11 +104,10 @@ class Scene:
             self.points.extend(v)
             self.points.extend(vn)
 
+        self.data = vbo.VBO(np.array(self.points, 'f'))
+
     # render
     def render(self, width, height):
-        data = vbo.VBO(np.array(self.points, 'f'))
-
-        print(self.hasShadow)
 
         # clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -136,12 +140,12 @@ class Scene:
 
         glColor(*self.actColor)
 
-        data.bind()
+        self.data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_NORMAL_ARRAY)
 
-        glVertexPointer(3, GL_FLOAT, 24, data)
-        glNormalPointer(GL_FLOAT, 24, data + 12)
+        glVertexPointer(3, GL_FLOAT, 24, self.data)
+        glNormalPointer(GL_FLOAT, 24, self.data + 12)
 
         glLoadIdentity()
         glTranslate(-self.coords[0], -self.coords[1], 0)
@@ -155,18 +159,9 @@ class Scene:
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
 
         if self.hasShadow:
-            glPushMatrix()
-            glDisable(GL_LIGHTING)
-            glDisable(GL_LIGHT0)
-            glMatrixMode(GL_MODELVIEW)
-            glTranslate(self.light[0], self.light[1], self.light[2])
-            glMultMatrixf(self.p)
-            glTranslate(-self.light[0], -self.light[1], -self.light[2])
-            glColor3f(0.0, 0.0, 0.0)
-            glDrawArrays(GL_TRIANGLES, 0, len(self.points))
-            glPopMatrix()
+            self.renderShadow()
 
-        data.unbind()
+        self.data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
@@ -195,8 +190,17 @@ class Scene:
         l = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         return x / l, y / l, z / l
 
-
-
-
-
+    def renderShadow(self):
+        glPushMatrix()
+        glDisable(GL_LIGHTING)
+        glDisable(GL_LIGHT0)
+        glMatrixMode(GL_MODELVIEW)
+        glTranslatef(self.light[0], self.light[1], self.light[2])
+        glMultMatrixf(self.p)
+        glTranslatef(-self.light[0], -self.light[1], -self.light[2])
+        # glEnable(GL_BLEND)
+        # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glColor4f(0.0, 0.0, 0.0, 0.9)
+        glDrawArrays(GL_TRIANGLES, 0, len(self.points))
+        glPopMatrix()
 

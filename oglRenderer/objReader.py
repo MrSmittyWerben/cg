@@ -93,10 +93,20 @@ class Triangles(object):
 
             else:
                 self.hasNormals = False
-                self.normals.extend([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
 
         if not self.hasNormals:
             calcedNorms = self.calcNorm()
+
+            for i in range(0, len(self.triangles), 3):
+                vn1 = calcedNorms[tuple(self.triangles[i])]
+                vn2 = calcedNorms[tuple(self.triangles[i+1])]
+                vn3 = calcedNorms[tuple(self.triangles[i+2])]
+
+                arr1 = [vn1[0], vn1[1], vn1[2]]
+                arr2 = [vn2[0], vn2[1], vn2[2]]
+                arr3 = [vn3[0], vn3[1], vn3[2]]
+
+                self.normals.extend([arr1, arr2, arr3])
 
         #  no texture anyway for our points
         return self.triangles, self.normals
@@ -114,7 +124,15 @@ class Triangles(object):
             out[tuple(self.triangles[i + 1])] = out[tuple(self.triangles[i + 1])] + n
             out[tuple(self.triangles[i + 2])] = out[tuple(self.triangles[i + 2])] + n
 
-        return list(out.values())
+        new_norms = []
+
+        for k in out.keys():
+            normal = out[k]
+            d = np.linalg.norm(normal)
+            if d > 0:
+                out[k] = normal/d
+
+        return out
 
 
 if __name__ == '__main__':
