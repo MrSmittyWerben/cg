@@ -81,7 +81,6 @@ class Triangles(object):
             self.textures.extend([arr1, arr2, arr3])
 
             if faces[0][2] != 0:
-                self.hasNormals = True
                 vn1 = self.vn[faces[0][2] - 1]
                 vn2 = self.vn[faces[1][2] - 1]
                 vn3 = self.vn[faces[2][2] - 1]

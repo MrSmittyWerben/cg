@@ -1,3 +1,5 @@
+import math
+
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -81,7 +83,7 @@ class Scene:
         self.ambient = [0.0, 1.0, 1.0, 1.0]
         self.diffuse = [1.0, 1.0, 1.0, 0.6]
         self.specular = [1.0, 1.0, 1.0, 0.2]
-        self.shiny = 10
+        self.shiny = 50
         self.p = np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -136,7 +138,7 @@ class Scene:
         glLoadIdentity()
         if self.perspective:
             gluPerspective(45, width / float(height), 0.1, 100)
-            gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)  # wont affect glOrtho
+            gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
         else:
             if width <= height:
                 glOrtho(-1.5, 1.5,
@@ -173,6 +175,9 @@ class Scene:
         if self.hasShadow:
             self.renderShadow()
 
+        glDisable(GL_BLEND)
+        glEnable(GL_DEPTH_TEST)
+
         self.data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)
@@ -204,16 +209,16 @@ class Scene:
 
     def renderShadow(self):
         glPushMatrix()
-        glDisable(GL_DEPTH_TEST)
         glDisable(GL_LIGHTING)
         glDisable(GL_LIGHT0)
         glMatrixMode(GL_MODELVIEW)
-        glTranslatef(self.light[0], self.light[1], self.light[2])
+        glTranslatef(self.light[0], self.light[1] - math.fabs(self.min_coords[1]), self.light[2])
         glMultMatrixf(self.p)
-        glTranslatef(-self.light[0], -self.light[1], -self.light[2])
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glTranslatef(-self.light[0], -self.light[1] + math.fabs(self.min_coords[1]), -self.light[2])
+        #glEnable(GL_BLEND)
+        #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glColor4f(0.0, 0.0, 0.0, 0.6)
+        #glDisable(GL_DEPTH_TEST)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
         glPopMatrix()
 
