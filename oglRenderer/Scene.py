@@ -79,7 +79,7 @@ class Scene:
 
         # shadows
         self.hasShadow = False
-        self.light = [10, 10, 10]
+        self.light = [30, 30, 10]
         self.ambient = [0.0, 1.0, 1.0, 1.0]
         self.diffuse = [1.0, 1.0, 1.0, 0.6]
         self.specular = [1.0, 1.0, 1.0, 0.2]
@@ -140,14 +140,15 @@ class Scene:
             gluPerspective(45, width / float(height), 0.1, 100)
             gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
         else:
+            # zF changed to 3 so shadow doesnt get cut off
             if width <= height:
                 glOrtho(-1.5, 1.5,
                         -1.5 * height / width, 1.5 * height / width,
-                        -1.0, 1.0)
+                        -2.0, 3.0)
             else:
                 glOrtho(-1.5 * width / height, 1.5 * width / height,
                         -1.5, 1.5,
-                        -1.0, 1.0)
+                        -2.0, 3.0)
 
         # Modelview
         glMatrixMode(GL_MODELVIEW)
@@ -156,9 +157,9 @@ class Scene:
 
         self.data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_NORMAL_ARRAY)
-
         glVertexPointer(3, GL_FLOAT, 24, self.data)
+
+        glEnableClientState(GL_NORMAL_ARRAY)
         glNormalPointer(GL_FLOAT, 24, self.data + 12)
 
         glLoadIdentity()
@@ -167,13 +168,12 @@ class Scene:
         glScale(self.scale*self.zoomFactor, self.scale*self.zoomFactor, self.scale*self.zoomFactor)
         glTranslate(-self.center[0], -self.center[1], -self.center[2])
 
-        if self.polygonMode:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
 
         if self.hasShadow:
-            self.renderShadow()
+            glDisableClientState(GL_NORMAL_ARRAY)
+            self.renderShadow(width, height)
 
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
@@ -207,18 +207,21 @@ class Scene:
         l = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         return x / l, y / l, z / l
 
-    def renderShadow(self):
+    def renderShadow(self, width, height):
         glPushMatrix()
         glDisable(GL_LIGHTING)
         glDisable(GL_LIGHT0)
+        glDepthMask(GL_FALSE)
+        glMatrixMode(GL_PROJECTION)
         glMatrixMode(GL_MODELVIEW)
         glTranslatef(self.light[0], self.light[1] - math.fabs(self.min_coords[1]), self.light[2])
         glMultMatrixf(self.p)
         glTranslatef(-self.light[0], -self.light[1] + math.fabs(self.min_coords[1]), -self.light[2])
+        glPolygonMode(GL_FRONT, GL_FILL)
         #glEnable(GL_BLEND)
         #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glColor4f(0.0, 0.0, 0.0, 0.6)
-        #glDisable(GL_DEPTH_TEST)
+        glColor4f(0.0, 0.0, 0.0, 0.9)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
+        glDepthMask(GL_TRUE)
         glPopMatrix()
 
