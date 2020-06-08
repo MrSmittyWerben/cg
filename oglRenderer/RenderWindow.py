@@ -55,23 +55,9 @@ class RenderWindow:
 
         # create 3D
         self.scene = Scene(objFile, self.width, self.height)
-        if self.scene.hasShadow:
-            self.renderShadow()
 
         # exit flag
         self.exitNow = False
-
-    def renderShadow(self):
-
-        glMatrixMode(GL_MODELVIEW)
-        glPushMatrix()
-        glTranslate(self.scene.light[0], self.scene.light[1], self.scene.light[2])
-        glMultMatrixf(self.scene.p)
-        glTranslate(-self.scene.light[0], -self.scene.light[1], -self.scene.light[2])
-        glColor3f(0.0, 0.0, 0.0)
-
-        self.scene.render(self.width, self.height)
-        glPopMatrix()
 
     def onMouseButton(self, win, button, action, mods):
         print("mouse button: ", win, button, action, mods)
@@ -203,17 +189,20 @@ class RenderWindow:
             if width <= height:
                 glOrtho(-1.5, 1.5,
                         -1.5 * height / width, 1.5 * height / width,
-                        -2.0, 3.0)
+                        -5.0, 5.0)
             else:
                 glOrtho(-1.5 * width / height, 1.5 * width / height,
                         -1.5, 1.5,
-                        -2.0, 3.0)
+                        -5.0, 5.0)
 
         glMatrixMode(GL_MODELVIEW)
 
     def run(self):
 
         while not glfw.window_should_close(self.window) and not self.exitNow:
+            # clear
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
             self.scene.render(self.width, self.height)
 
             glfw.swap_buffers(self.window)

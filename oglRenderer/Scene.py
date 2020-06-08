@@ -79,7 +79,7 @@ class Scene:
 
         # shadows
         self.hasShadow = False
-        self.light = [30, 30, 10]
+        self.light = [10, 10, 10]
         self.ambient = [0.0, 1.0, 1.0, 1.0]
         self.diffuse = [1.0, 1.0, 1.0, 0.6]
         self.specular = [1.0, 1.0, 1.0, 0.2]
@@ -88,7 +88,7 @@ class Scene:
             [1, 0, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 1, 0],
-            [0, 1/(-self.light[1]), 0, 0]
+            [0, 1 / (-self.light[1]), 0, 0]
         ]).transpose()
 
         # object
@@ -102,7 +102,23 @@ class Scene:
         self.min_coords = np.minimum.reduce([p for p in self.triangles])
 
         self.center = (self.max_coords + self.min_coords) / 2.0
-        self.scale = (2.0 / np.amax(self.max_coords - self.min_coords))
+
+        movedT = []
+        for t in self.triangles:
+            movedT.append([t[0]-self.center[0], t[1]-self.center[1], t[2]-self.center[2]])
+
+        self.triangles = movedT
+
+        self.scale = (2.0 / max([
+            self.max_coords[0] - self.min_coords[0],
+            self.max_coords[1] - self.min_coords[1],
+            self.max_coords[2] - self.min_coords[2]]))
+
+        scaledT = []
+        for t in self.triangles:
+            scaledT.append([t[0] * self.scale, t[1] * self.scale, t[2] * self.scale])
+
+        self.triangles = scaledT
 
         self.points = []
 
@@ -114,10 +130,6 @@ class Scene:
 
     # render
     def render(self, width, height):
-
-        # clear
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
         glClearColor(*self.actBgColor)
 
         glEnable(GL_LIGHT0)
@@ -140,20 +152,21 @@ class Scene:
             gluPerspective(45, width / float(height), 0.1, 100)
             gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
         else:
-            # zF changed to 3 so shadow doesnt get cut off
+            # zF changed to 5 so shadow doesnt get cut off
             if width <= height:
                 glOrtho(-1.5, 1.5,
                         -1.5 * height / width, 1.5 * height / width,
-                        -2.0, 3.0)
+                        -5.0, 5.0)
             else:
                 glOrtho(-1.5 * width / height, 1.5 * width / height,
                         -1.5, 1.5,
-                        -2.0, 3.0)
+                        -5.0, 5.0)
 
         # Modelview
         glMatrixMode(GL_MODELVIEW)
 
         glColor(*self.actColor)
+        glTranslatef(0, -self.min_coords[1], 0)
 
         self.data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
@@ -165,23 +178,20 @@ class Scene:
         glLoadIdentity()
         glTranslate(-self.coords[0], -self.coords[1], 0)
         glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))  # arcball
-        glScale(self.scale*self.zoomFactor, self.scale*self.zoomFactor, self.scale*self.zoomFactor)
-        glTranslate(-self.center[0], -self.center[1], -self.center[2])
+        glScale(self.zoomFactor, self.zoomFactor, self.zoomFactor)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
 
         if self.hasShadow:
-            glDisableClientState(GL_NORMAL_ARRAY)
             self.renderShadow(width, height)
-
-        glDisable(GL_BLEND)
-        glEnable(GL_DEPTH_TEST)
 
         self.data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
+
+        glTranslatef(0, self.min_coords[1], 0)
 
         glFlush()
 
@@ -211,17 +221,9 @@ class Scene:
         glPushMatrix()
         glDisable(GL_LIGHTING)
         glDisable(GL_LIGHT0)
-        glDepthMask(GL_FALSE)
-        glMatrixMode(GL_PROJECTION)
-        glMatrixMode(GL_MODELVIEW)
-        glTranslatef(self.light[0], self.light[1] - math.fabs(self.min_coords[1]), self.light[2])
+        glTranslate(self.light[0], self.light[1], self.light[2])
         glMultMatrixf(self.p)
-        glTranslatef(-self.light[0], -self.light[1] + math.fabs(self.min_coords[1]), -self.light[2])
-        glPolygonMode(GL_FRONT, GL_FILL)
-        #glEnable(GL_BLEND)
-        #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glColor4f(0.0, 0.0, 0.0, 0.9)
+        glTranslate(-self.light[0], -self.light[1], -self.light[2])
+        glColor3f(0.0, 0.0, 0.0)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
-        glDepthMask(GL_TRUE)
         glPopMatrix()
-
