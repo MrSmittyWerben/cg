@@ -164,7 +164,7 @@ class RenderWindow:
                     self.scene.hasShadow = not self.scene.hasShadow
 
                 if key == glfw.KEY_N:  # shadows
-                    self.scene.polygonMode = not self.scene.polygonMode
+                    self.scene.wireMode = not self.scene.wireMode
 
     def onSize(self, win, width, height):  # reshape
         print("onsize: ", win, width, height)

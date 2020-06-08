@@ -55,7 +55,7 @@ class Scene:
         self.actBgColor = 1.0, 1.0, 1.0, 1.0
 
         # Polygonmode
-        self.polygonMode = False
+        self.wireMode = False
 
         # Rotation
         self.startP = 0
@@ -173,8 +173,10 @@ class Scene:
         glTranslate(-self.coords[0], -self.coords[1], 0)
         glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))  # arcball
         glScale(self.zoomFactor, self.zoomFactor, self.zoomFactor)
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        if self.wireMode:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        else:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
 
         if self.hasShadow:
