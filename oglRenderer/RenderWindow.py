@@ -182,7 +182,10 @@ class RenderWindow:
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         if self.scene.perspective:
-            gluPerspective(45, self.aspect, 0.1, 100)
+            if width <= height:
+                gluPerspective(45*(height/float(width)), self.aspect, 0.1, 100)
+            else:
+                gluPerspective(45 * self.aspect, self.aspect, 0.1, 100)
             gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
 
         else:

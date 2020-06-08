@@ -143,10 +143,13 @@ class Scene:
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         if self.perspective:
-            gluPerspective(45, width / float(height), 0.1, 100)
+            if width <= height:
+                gluPerspective(45 * height/float(width), width/float(height), 0.1, 100)
+            else:
+                gluPerspective(45 * width/float(width), width/float(height), 0.1, 100)
             gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
         else:
-            # zF changed to 5 so shadow doesnt get cut off
+            # zF changed to 3 so shadow doesnt get cut off
             if width <= height:
                 glOrtho(-1.5, 1.5,
                         -1.5 * height / width, 1.5 * height / width,
