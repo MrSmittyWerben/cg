@@ -103,12 +103,6 @@ class Scene:
 
         self.center = (self.max_coords + self.min_coords) / 2.0
 
-        movedT = []
-        for t in self.triangles:
-            movedT.append([t[0]-self.center[0], t[1]-self.center[1], t[2]-self.center[2]])
-
-        self.triangles = movedT
-
         self.scale = (2.0 / max([
             self.max_coords[0] - self.min_coords[0],
             self.max_coords[1] - self.min_coords[1],
@@ -156,17 +150,16 @@ class Scene:
             if width <= height:
                 glOrtho(-1.5, 1.5,
                         -1.5 * height / width, 1.5 * height / width,
-                        -5.0, 5.0)
+                        -3.0, 3.0)
             else:
                 glOrtho(-1.5 * width / height, 1.5 * width / height,
                         -1.5, 1.5,
-                        -5.0, 5.0)
+                        -3.0, 3.0)
 
         # Modelview
         glMatrixMode(GL_MODELVIEW)
 
         glColor(*self.actColor)
-        glTranslatef(0, -self.min_coords[1], 0)
 
         self.data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
@@ -176,6 +169,7 @@ class Scene:
         glNormalPointer(GL_FLOAT, 24, self.data + 12)
 
         glLoadIdentity()
+        glTranslate(-self.center[0]*self.scale, -self.center[1]*self.scale, -self.center[2]*self.scale)
         glTranslate(-self.coords[0], -self.coords[1], 0)
         glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))  # arcball
         glScale(self.zoomFactor, self.zoomFactor, self.zoomFactor)
@@ -191,7 +185,6 @@ class Scene:
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
 
-        glTranslatef(0, self.min_coords[1], 0)
 
         glFlush()
 
@@ -221,9 +214,9 @@ class Scene:
         glPushMatrix()
         glDisable(GL_LIGHTING)
         glDisable(GL_LIGHT0)
-        glTranslate(self.light[0], self.light[1], self.light[2])
+        glTranslate(self.light[0], self.light[1]-math.fabs(self.min_coords[1]*self.scale), self.light[2])
         glMultMatrixf(self.p)
-        glTranslate(-self.light[0], -self.light[1], -self.light[2])
+        glTranslate(-self.light[0], -self.light[1] + math.fabs(self.min_coords[1]*self.scale), -self.light[2])
         glColor3f(0.0, 0.0, 0.0)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
         glPopMatrix()
