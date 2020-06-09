@@ -79,11 +79,11 @@ class Scene:
 
         # shadows
         self.hasShadow = False
-        self.light = [10, 10, 10]
+        self.light = [30, 30, 30]
         self.ambient = [0.0, 1.0, 1.0, 1.0]
         self.diffuse = [1.0, 1.0, 1.0, 0.6]
         self.specular = [1.0, 1.0, 1.0, 0.2]
-        self.shiny = 50
+        self.shiny = 70
         self.p = np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -149,20 +149,18 @@ class Scene:
                 gluPerspective(45 * width/float(width), width/float(height), 0.1, 100)
             gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
         else:
-            # zF changed to 3 so shadow doesnt get cut off
+            # zF changed to 5 so shadow doesnt get cut off
             if width <= height:
                 glOrtho(-1.5, 1.5,
                         -1.5 * height / width, 1.5 * height / width,
-                        -3.0, 3.0)
+                        -5.0, 5.0)
             else:
                 glOrtho(-1.5 * width / height, 1.5 * width / height,
                         -1.5, 1.5,
-                        -3.0, 3.0)
+                        -5.0, 5.0)
 
         # Modelview
         glMatrixMode(GL_MODELVIEW)
-
-        glColor(*self.actColor)
 
         self.data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
@@ -176,20 +174,27 @@ class Scene:
         glTranslate(-self.coords[0], -self.coords[1], 0)
         glMultMatrixf(np.dot(self.actOri, self.rotate(self.angle, self.axis)))  # arcball
         glScale(self.zoomFactor, self.zoomFactor, self.zoomFactor)
+
         if self.wireMode:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         else:
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        glDrawArrays(GL_TRIANGLES, 0, len(self.points))
 
         if self.hasShadow:
             self.renderShadow(width, height)
+
+        glColor(*self.actColor)
+        glEnable(GL_DEPTH_TEST)
+        glDisable(GL_BLEND)
+        glEnable(GL_LIGHT0)
+        glEnable(GL_LIGHTING)
+
+        glDrawArrays(GL_TRIANGLES, 0, len(self.points))
 
         self.data.unbind()
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
-
 
         glFlush()
 
@@ -217,11 +222,13 @@ class Scene:
 
     def renderShadow(self, width, height):
         glPushMatrix()
-        glDisable(GL_LIGHTING)
         glDisable(GL_LIGHT0)
+        glDisable(GL_DEPTH_TEST)
         glTranslate(self.light[0], self.light[1]-math.fabs(self.min_coords[1]*self.scale), self.light[2])
         glMultMatrixf(self.p)
         glTranslate(-self.light[0], -self.light[1] + math.fabs(self.min_coords[1]*self.scale), -self.light[2])
-        glColor3f(0.0, 0.0, 0.0)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glColor4f(0.0, 0.0, 0.0, 0.85)
         glDrawArrays(GL_TRIANGLES, 0, len(self.points))
         glPopMatrix()

@@ -192,11 +192,11 @@ class RenderWindow:
             if width <= height:
                 glOrtho(-1.5, 1.5,
                         -1.5 * height / width, 1.5 * height / width,
-                        -3.0, 3.0)
+                        -5.0, 5.0)
             else:
                 glOrtho(-1.5 * width / height, 1.5 * width / height,
                         -1.5, 1.5,
-                        -3.0, 3.0)
+                        -5.0, 5.0)
 
         glMatrixMode(GL_MODELVIEW)
 
