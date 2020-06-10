@@ -61,9 +61,7 @@ def display():
     """ Render all objects"""
     glClear(GL_COLOR_BUFFER_BIT)  # clear screen
     glColor(1.0, 0.0, 0.0)  # render stuff
-
     glLoadIdentity()
-
     glRotate(rotX, 1, 0, 0)  # rotate x
     glRotate(rotY, 0, 1, 0)  # rotate y
     glRotate(rotZ, 0, 0, 1)  # rotate z
