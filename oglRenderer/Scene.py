@@ -103,10 +103,7 @@ class Scene:
 
         self.center = (self.max_coords + self.min_coords) / 2.0
 
-        self.scale = (2.0 / max([
-            self.max_coords[0] - self.min_coords[0],
-            self.max_coords[1] - self.min_coords[1],
-            self.max_coords[2] - self.min_coords[2]]))
+        self.scale = 2.0 / np.amax(self.max_coords-self.min_coords)
 
         scaledT = []
         for t in self.triangles:

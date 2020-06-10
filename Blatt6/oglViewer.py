@@ -37,10 +37,9 @@ elif sys.argv[1].lower() in ("bunny", "elephant", "squirrel", "cow"):
 
     # bounding box
     max_coord = np.maximum.reduce([p for p in pointList])
-    print(max)
     min_coord = np.minimum.reduce([p for p in pointList])
     center = (max_coord + min_coord) / 2.0
-    scale = 2.0 / (max_coord[0]-min_coord[0])
+    scale = 2.0 / np.amax(max_coord-min_coord)
 
     vbo = vbo.VBO(np.array(pointList, 'f'))
 
@@ -51,7 +50,7 @@ else:
 
 def init(width, height):
     """ Initialize an OpenGL window """
-    glClearColor(1.0, 1.0, 1.0, 1.0)  # background color
+    glClearColor(0.0, 0.0, 0.0, 1.0)  # background color
 
     glMatrixMode(GL_PROJECTION)  # switch to projection matrix
     glLoadIdentity()  # set to 1
@@ -61,16 +60,16 @@ def init(width, height):
 def display():
     """ Render all objects"""
     glClear(GL_COLOR_BUFFER_BIT)  # clear screen
-    glColor(0.0, 0.0, 1.0)  # render stuff
+    glColor(1.0, 0.0, 0.0)  # render stuff
 
-    glLoadIdentity()  # reset mv matrix
+    glLoadIdentity()
 
     glRotate(rotX, 1, 0, 0)  # rotate x
     glRotate(rotY, 0, 1, 0)  # rotate y
     glRotate(rotZ, 0, 0, 1)  # rotate z
 
     glScale(scale, scale, scale)  # scale to window
-    glTranslate(-center[0], -center[1], -center[2])  # move to origin AFTER rotating and scaling, independent of these actions
+    glTranslate(-center[0], -center[1], -center[2])
 
     vbo.bind()
     glVertexPointerf(vbo)
