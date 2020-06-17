@@ -135,7 +135,6 @@ class Scene:
         mvMat *= self.scale(self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor)
         mvMat *= self.translate(-self.center[0] + self.coords[0], -self.center[1] + self.coords[1], - self.center[2])
 
-
         normalMat = np.linalg.inv(mvMat[0:3, 0:3]).transpose()
         mvpMat = self.pMatrix * mvMat
 

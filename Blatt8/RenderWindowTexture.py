@@ -55,10 +55,10 @@ class RenderWindow:
         self.lastPosY = 0
 
         # create 3D
-        vertexShader = open('GouraudShader.vert', 'r').read()
-        fragmentShader = open('GouraudShader.frag', 'r').read()
+        vertexShader = open('PhongShader.vert', 'r').read()
+        fragmentShader = open('PhongShader.frag', 'r').read()
         self.program = compileProgram(compileShader(vertexShader, GL_VERTEX_SHADER),
-                                       compileShader(fragmentShader, GL_FRAGMENT_SHADER))
+                                      compileShader(fragmentShader, GL_FRAGMENT_SHADER))
 
         self.scene = Scene(objFile, self.program, self.width, self.height)
         self.scene.getTexture("Squirreltexture.jpg")
@@ -106,8 +106,8 @@ class RenderWindow:
             offX = x - self.lastPosX
             offY = y - self.lastPosY
 
-            self.currentPosX -= 2 * offX/self.width  # division/multiplication to move more naturally
-            self.currentPosY += 2 * offY/self.height
+            self.currentPosX -= 2 * offX / self.width  # division/multiplication to move more naturally
+            self.currentPosY += 2 * offY / self.height
 
             self.scene.coords = (self.currentPosX, self.currentPosY)
 
@@ -133,7 +133,7 @@ class RenderWindow:
 
             ## COLORS
             if mods == glfw.MOD_SHIFT:  # shift pressed (background color)
-                #if key == glfw.KEY_S:  # black
+                # if key == glfw.KEY_S:  # black
                 #    self.scene.actBgColor = self.scene.colors['BLACK']
                 if key == glfw.KEY_W:  # white
                     self.scene.actBgColor = self.scene.colors['WHITE']
@@ -145,8 +145,8 @@ class RenderWindow:
                     self.scene.actBgColor = self.scene.colors['YELLOW']
 
             else:  # shift not pressed ( object color)
-               # if key == glfw.KEY_S:  # black
-              #      self.scene.actColor = self.scene.colors['BLACK']
+                # if key == glfw.KEY_S:  # black
+                #      self.scene.actColor = self.scene.colors['BLACK']
                 if key == glfw.KEY_W:  # white
                     self.scene.actColor = self.scene.colors['WHITE']
                 if key == glfw.KEY_R:  # red
@@ -186,10 +186,9 @@ class RenderWindow:
         glViewport(0, 0, self.width, self.height)
 
         if width <= height:
-            self.scene.pMatrix = self.scene.perspectiveMatrix(45* height/float(width), self.aspect, 0.1, 100)
+            self.scene.pMatrix = self.scene.perspectiveMatrix(45 * height / float(width), self.aspect, 0.1, 100)
         else:
             self.scene.pMatrix = self.scene.perspectiveMatrix(45 * self.aspect, self.aspect, 0.1, 100)
-
 
     def run(self):
 
