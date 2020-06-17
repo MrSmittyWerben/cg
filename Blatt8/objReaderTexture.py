@@ -35,8 +35,7 @@ class Triangles(object):
                 parts = line.split()
                 v1 = float(parts[1])
                 v2 = float(parts[2])
-                v3 = float(parts[3])
-                self.v.append((v1, v2, v3))
+                self.vt.append((v1, v2))
 
             if line.startswith("f "):
                 parts = line.split()
@@ -71,13 +70,13 @@ class Triangles(object):
             if faces[0][1] != 0:
                 vt1 = self.vt[faces[0][1] - 1]
                 vt2 = self.vt[faces[1][1] - 1]
-                vt3 = self.vt[faces[2][1] - 1]
+                vt3 = self.vt[faces[2][1] -1]
             else:
-                vt1, vt2, vt3 = [0, 0, 0], [0, 0, 0], [0, 0, 0]
+                vt1, vt2, vt3 = [0, 0], [0, 0], [0, 0]
 
-            arr1 = [vt1[0], vt1[1], vt1[2]]
-            arr2 = [vt2[0], vt2[1], vt2[2]]
-            arr3 = [vt3[0], vt3[1], vt3[2]]
+            arr1 = [vt1[0], vt1[1]]
+            arr2 = [vt2[0], vt2[1]]
+            arr3 = [vt3[0], vt3[1]]
             self.textures.extend([arr1, arr2, arr3])
 
             if faces[0][2] != 0:
@@ -108,7 +107,7 @@ class Triangles(object):
                 self.normals.extend([arr1, arr2, arr3])
 
         #  no texture anyway for our points
-        return self.triangles, self.normals
+        return self.triangles, self.normals, self.textures
 
     def calcNorm(self):
         # get average normals for gouraud shading

@@ -8,7 +8,7 @@ from OpenGL.arrays import vbo
 
 import numpy as np
 
-from oglRenderer.objReader import Triangles
+from Blatt8.objReaderTexture import Triangles
 
 
 class Scene:
@@ -92,7 +92,7 @@ class Scene:
         ]).transpose()
 
         # object
-        self.triangles, self.norms = Triangles(self.objFile).generateObj()
+        self.triangles, self.norms, self.textures = Triangles(self.objFile).generateObj()
 
         # perspective
         self.perspective = False
@@ -209,6 +209,16 @@ class Scene:
         ])
 
         return r.transpose()
+
+    def translate(self, tx, ty, tz):
+        t = np.array([
+            [1, 0, 0, tx],
+            [0, 1, 0, ty],
+            [0, 0, 1, tz],
+            [0, 0, 0, 1]
+        ])
+
+        return t
 
     def projectOnSpehre(self, x, y, r):
         x, y = x - self.width / 2.0, self.height / 2.0 - y

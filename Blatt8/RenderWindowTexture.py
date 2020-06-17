@@ -5,7 +5,7 @@ from OpenGL.GLUT import *
 
 import numpy as np
 
-from oglRenderer.Scene import Scene
+from Blatt8.SceneTexture import Scene
 
 global objFile, vbo
 
@@ -226,8 +226,8 @@ def main():
 if __name__ == '__main__':
 
     if len(sys.argv) == 2:
-        if sys.argv[1].lower() in ('bunny', 'cow', 'squirrel', 'squirrel2', 'elephant'):
-            objFile = f"{sys.argv[1].lower()}.obj"
+        if sys.argv[1] == 'Squirrel':
+            objFile = f"{sys.argv[1].lower()}Textured.obj"
         else:
             print('Invalid arguments received!')
             sys.exit(-1)
