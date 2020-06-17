@@ -268,7 +268,7 @@ class Scene:
         p = np.array([
             [f/aspect, 0, 0, 0],
             [0, f, 0, 0],
-            [0, 0, (zF+ zN)/(zN-zF), (2*zF*zN)/(zN-zF)],
+            [0, 0, (zF + zN)/(zN - zF), (2 * zF * zN)/(zN - zF)],
             [0, 0, -1, 0]
         ])
 

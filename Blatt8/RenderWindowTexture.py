@@ -54,6 +54,7 @@ class RenderWindow:
         self.lastPosY = 0
 
         # create 3D
+        self.varLocation = glGetUniformLocation
         self.scene = Scene(objFile, self.width, self.height)
 
         # exit flag
