@@ -220,6 +220,71 @@ class Scene:
 
         return t
 
+    def scale(self, sx, sy, sz):
+        s = np.array([
+            [sx, 0, 0, 0],
+            [0, sy, 0, 0],
+            [0, 0, sz, 0],
+            [0, 0, 0, 1]
+        ])
+
+        return s
+
+    def normalize(self, array):
+        l_array = np.linalg.norm(array)
+
+        return array / l_array if l_array != 0 else array
+
+    def lookAt(self, ex, ey, ez, cx, cy, cz, ux, uy, uz):
+        e= np.array([ex, ey, ez])
+        c = np.array([cx, cy, cz])
+        up = np.array([ux, uy, uz])
+
+        # normalize
+        up = self.normalize(up)
+
+        # view dir
+        f = c - e
+        f = self.normalize(f)
+
+        # calc s
+        s = np.cross(f, up)
+        s = self.normalize(s)
+
+        # calc u
+        u = np.cross(s,f)
+
+        l = np.array([
+            [s[0], s[1], s[2], -np.dot(s,e)],
+            [u[0], u[1], u[2], -np.dot(u, e)],
+            [-f[0], -f[1], -f[2], -np.dot(f, e )],
+            [0, 0, 0, 1]
+        ])
+
+        return l
+
+    def perspectiveMatrix(self, fov, aspect, zN, zF):
+        f = 1.0 / np.tan(fov/2.0)
+        p = np.array([
+            [f/aspect, 0, 0, 0],
+            [0, f, 0, 0],
+            [0, 0, (zF+ zN)/(zN-zF), (2*zF*zN)/(zN-zF)],
+            [0, 0, -1, 0]
+        ])
+
+        return p
+
+    def orthogonalMatrix(self, d):
+
+        p = np.array([
+            [d, 0, 0, 0],
+            [0, d, 0, 0],
+            [0, 0, d, 0],
+            [0, 0, -1, 0]
+        ])
+
+        return p
+
     def projectOnSpehre(self, x, y, r):
         x, y = x - self.width / 2.0, self.height / 2.0 - y
         a = min(r * r, x ** 2 + y ** 2)
