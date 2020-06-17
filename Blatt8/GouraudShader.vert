@@ -14,7 +14,7 @@ void main(void)
     vec3 eyeNormal = normalize(normalMatrix * gl_Normal);
 
     vec4 vPosition4 = mvMatrix * gl_Vertex;
-    vec3 vPosition3 = vPosition.xyz / vPosition4.w;
+    vec3 vPosition3 = vPosition4.xyz / vPosition4.w;
     vec3 vLightDir = normalize(lightPosition - vPosition3);
     float diff = max(0.0, dot(eyeNormal, vLightDir));
     varyingColor = diff * diffuseColor;

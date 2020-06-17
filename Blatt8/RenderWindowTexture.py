@@ -1,4 +1,5 @@
 import glfw
+from OpenGL.GL.shaders import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
@@ -54,7 +55,10 @@ class RenderWindow:
         self.lastPosY = 0
 
         # create 3D
-        self.varLocation = glGetUniformLocation
+        vertexShader = open('GouraudShader.vert', 'r').read()
+        fragmentShader = open('GouraudShader.frag', 'r').read()
+        self.programm = compileProgram(compileShader(vertexShader, GL_VERTEX_SHADER),
+                                       compileShader(fragmentShader, GL_FRAGMENT_SHADER))
         self.scene = Scene(objFile, self.width, self.height)
 
         # exit flag
