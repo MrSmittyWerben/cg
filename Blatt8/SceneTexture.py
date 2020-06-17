@@ -94,9 +94,6 @@ class Scene:
         # object
         self.triangles, self.norms, self.textures = Triangles(self.objFile).generateObj()
 
-        # perspective
-        self.perspective = False
-
         # bounding box
         self.max_coords = np.maximum.reduce([p for p in self.triangles])
         self.min_coords = np.minimum.reduce([p for p in self.triangles])

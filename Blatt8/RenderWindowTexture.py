@@ -59,11 +59,33 @@ class RenderWindow:
         fragmentShader = open('GouraudShader.frag', 'r').read()
         self.programm = compileProgram(compileShader(vertexShader, GL_VERTEX_SHADER),
                                        compileShader(fragmentShader, GL_FRAGMENT_SHADER))
+
+
         self.scene = Scene(objFile, self.width, self.height)
 
         # exit flag
         self.exitNow = False
 
+    def sendValue(self, programm, varName, value):
+        varLocation = glGetUniformLocation(programm, varName)
+        glUniform1f(varLocation, value)
+
+    def sendVec3(self, programm, varName, value):
+        varLocation = glGetUniformLocation(programm, varName)
+        glUniform3f(varLocation, *value)
+
+    def sendVec4(self, programm, varName, value):
+        varLocation = glGetUniformLocation(programm, varName)
+        glUniform3f(varLocation, *value)
+
+    def sendMatrix3(self, programm, varName, matrix):
+        varLocation = glGetUniformLocation(programm, varName)
+        glUniformMatrix3fv(varLocation, 1, GL_TRUE,  matrix.tolist())
+
+    def sendMatrix4(self, programm, varName, matrix):
+        varLocation = glGetUniformLocation(programm, varName)
+        glUniformMatrix4fv(varLocation, 1, GL_TRUE,  matrix.tolist())
+    
     def onMouseButton(self, win, button, action, mods):
         print("mouse button: ", win, button, action, mods)
         r = min(self.width, self.height) / 2.0
