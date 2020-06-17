@@ -118,10 +118,11 @@ class Scene:
 
         for v, vt, vn in zip(self.triangles, self.textures, self.norms):
             self.points.extend(v)
-            self.points.extend(vt)
             self.points.extend(vn)
+            self.points.extend(vt)
 
         self.data = vbo.VBO(np.array(self.points, 'f'))
+
         self.pMatrix = self.perspectiveMatrix(45, self.width/float(self.height), 0.1, 100)
 
     # render
@@ -131,7 +132,7 @@ class Scene:
         glClearColor(*self.actBgColor)
 
         mvMat = self.lookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
-        mvMat *= np.dot(self.rotate(self.angle, self.axis), self.actOri)
+        mvMat *= (self.rotate(self.angle, self.axis) * self.actOri)
         mvMat *= self.scale(self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor)
         mvMat *= self.translate(-self.center[0] + self.coords[0], -self.center[1] + self.coords[1], - self.center[2])
 
@@ -288,4 +289,4 @@ class Scene:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagedata)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2048, 2048, 0, GL_RGB, GL_UNSIGNED_BYTE, imagedata)

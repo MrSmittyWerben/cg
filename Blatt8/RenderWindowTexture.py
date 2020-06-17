@@ -62,6 +62,7 @@ class RenderWindow:
 
         self.scene = Scene(objFile, self.program, self.width, self.height)
         self.scene.getTexture("Squirreltexture.jpg")
+        print("done")
 
         # exit flag
         self.exitNow = False
