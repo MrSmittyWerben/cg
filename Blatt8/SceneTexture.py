@@ -15,13 +15,14 @@ class Scene:
     """ OpenGL 2D scene class """
 
     # initialization
-    def __init__(self, objFile, width, height):
+    def __init__(self, objFile, shader, width, height):
         # time
         self.t = 0
         self.pointsize = 3
         self.width = width
         self.height = height
         self.objFile = objFile
+        self.program = shader
         glPointSize(self.pointsize)
         glLineWidth(self.pointsize)
 
@@ -100,13 +101,15 @@ class Scene:
 
         self.center = (self.max_coords + self.min_coords) / 2.0
 
-        self.scale = 2.0 / np.amax(self.max_coords-self.min_coords)
+        self.scaleFactor = 2.0 / np.amax(self.max_coords-self.min_coords)
 
+        '''
         scaledT = []
         for t in self.triangles:
             scaledT.append([t[0] * self.scale, t[1] * self.scale, t[2] * self.scale])
 
         self.triangles = scaledT
+        '''
 
         self.points = []
 
@@ -116,13 +119,66 @@ class Scene:
             self.points.extend(vn)
 
         self.data = vbo.VBO(np.array(self.points, 'f'))
-
+        self.pMatrix = self.perspectiveMatrix(45, self.width/float(self.height), 0.1, 100)
 
     # render
     def render(self, width, height):
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glClearColor(*self.actBgColor)
 
+        mvMat = self.lookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
+        mvMat *= np.dot(self.rotate(self.angle, self.axis), self.actOri)
+        mvMat *= self.scale(self.scaleFactor, self.scaleFactor, self.scaleFactor)
+        mvMat *= self.translate(-self.center[0], -self.center[1], - self.center[2])
 
+        normalMat = np.linalg.inv(mvMat[0:3, 0:3]).transpose()
+        mvpMat = self.pMatrix * mvMat
+
+        self.sendMatrix4("mvMatrix", mvMat)
+        self.sendMatrix4("mvpMatrix", mvpMat)
+        self.sendMatrix3("normalMatrix", normalMat)
+        self.sendVec4("diffuseColor", self.diffuse)
+        self.sendVec4("ambientColor", self.ambient)
+        self.sendVec4("specularColor", self.specular)
+        self.sendVec3("lightPosition", self.light)
+
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glEnableClientState(GL_NORMAL_ARRAY)
+
+        self.data.bind()
+        glVertexPointer(3, GL_FLOAT, 24, self.data)
+        glNormalPointer(GL_FLOAT, 24, self.data+12)
+        glDrawArrays(GL_TRIANGLES, 0, len(self.data))
+        self.data.unbind()
+
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+        glDisableClientState(GL_NORMAL_ARRAY)
+
+        glFlush()
+
+
+
+    def sendValue(self, varName, value):
+        varLocation = glGetUniformLocation(self.program, varName)
+        glUniform1f(varLocation, value)
+
+    def sendVec3(self, varName, value):
+        varLocation = glGetUniformLocation(self.program, varName)
+        glUniform3f(varLocation, *value)
+
+    def sendVec4(self, varName, value):
+        varLocation = glGetUniformLocation(self.program, varName)
+        glUniform4f(varLocation, *value)
+
+    def sendMatrix3(self, varName, matrix):
+        varLocation = glGetUniformLocation(self.program, varName)
+        glUniformMatrix3fv(varLocation, 1, GL_TRUE, matrix.tolist())
+
+    def sendMatrix4(self, varName, matrix):
+        varLocation = glGetUniformLocation(self.program, varName)
+        glUniformMatrix4fv(varLocation, 1, GL_TRUE, matrix.tolist())
 
     def rotate(self, angle, axis):
         c, mc = np.cos(angle), 1 - np.cos(angle)
@@ -165,7 +221,7 @@ class Scene:
         return array / l_array if l_array != 0 else array
 
     def lookAt(self, ex, ey, ez, cx, cy, cz, ux, uy, uz):
-        e= np.array([ex, ey, ez])
+        e = np.array([ex, ey, ez])
         c = np.array([cx, cy, cz])
         up = np.array([ux, uy, uz])
 
