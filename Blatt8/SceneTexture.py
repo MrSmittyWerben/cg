@@ -7,6 +7,7 @@ from OpenGL.GLUT import *
 from OpenGL.arrays import vbo
 
 import numpy as np
+from PIL import Image
 
 from Blatt8.objReaderTexture import Triangles
 
@@ -125,19 +126,26 @@ class Scene:
 
     # render
     def render(self):
-        glUseProgram(self.program)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glClearColor(*self.actBgColor)
 
         mvMat = self.lookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
         mvMat *= np.dot(self.rotate(self.angle, self.axis), self.actOri)
-        mvMat *= self.scale(self.scaleFactor, self.scaleFactor, self.scaleFactor)
-        mvMat *= self.translate(-self.center[0], -self.center[1], - self.center[2])
+        mvMat *= self.scale(self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor)
+        mvMat *= self.translate(-self.center[0] + self.coords[0], -self.center[1] + self.coords[1], - self.center[2])
+
 
         normalMat = np.linalg.inv(mvMat[0:3, 0:3]).transpose()
         mvpMat = self.pMatrix * mvMat
 
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_NORMAL_ARRAY)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+
+        self.data.bind()
+
+        glUseProgram(self.program)
         self.sendMatrix4("mvMatrix", mvMat)
         self.sendMatrix4("mvpMatrix", mvpMat)
         self.sendMatrix3("normalMatrix", normalMat)
@@ -146,17 +154,13 @@ class Scene:
         self.sendVec4("specularColor", self.specular)
         self.sendVec3("lightPosition", self.light)
 
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-        glEnableClientState(GL_NORMAL_ARRAY)
-
-        self.data.bind()
         glVertexPointer(3, GL_FLOAT, 32, self.data)
-        glTexCoordPointer(2, GL_FLOAT, 32, self.data+12)
-        glNormalPointer(GL_FLOAT, 32, self.data+20)
-        glDrawArrays(GL_TRIANGLES, 0, len(self.data))
-        self.data.unbind()
+        glNormalPointer(GL_FLOAT, 32, self.data+12)
+        glTexCoordPointer(2, GL_FLOAT, 32, self.data + 24)
 
+        glDrawArrays(GL_TRIANGLES, 0, len(self.data))
+
+        self.data.unbind()
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
@@ -269,3 +273,20 @@ class Scene:
         z = np.sqrt(r * r - a)
         l = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         return x / l, y / l, z / l
+
+    def getTexture(self, textureImage):
+        image = Image.open(textureImage)
+
+        imagedata = np.array(image)
+        imagedata = imagedata[::-1, :]
+        imagedata = imagedata.tostring()
+
+        textureID = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, textureID)
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagedata)
