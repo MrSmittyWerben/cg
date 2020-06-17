@@ -57,6 +57,8 @@ class Scene:
 
         # Polygonmode
         self.wireMode = False
+        self.solidMode = True
+        self.pointMode = False
 
         # Rotation
         self.startP = 0
@@ -122,7 +124,9 @@ class Scene:
         self.pMatrix = self.perspectiveMatrix(45, self.width/float(self.height), 0.1, 100)
 
     # render
-    def render(self, width, height):
+    def render(self):
+        glUseProgram(self.program)
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glClearColor(*self.actBgColor)
 
@@ -147,8 +151,9 @@ class Scene:
         glEnableClientState(GL_NORMAL_ARRAY)
 
         self.data.bind()
-        glVertexPointer(3, GL_FLOAT, 24, self.data)
-        glNormalPointer(GL_FLOAT, 24, self.data+12)
+        glVertexPointer(3, GL_FLOAT, 32, self.data)
+        glTexCoordPointer(2, GL_FLOAT, 32, self.data+12)
+        glNormalPointer(GL_FLOAT, 32, self.data+20)
         glDrawArrays(GL_TRIANGLES, 0, len(self.data))
         self.data.unbind()
 
@@ -157,8 +162,6 @@ class Scene:
         glDisableClientState(GL_NORMAL_ARRAY)
 
         glFlush()
-
-
 
     def sendValue(self, varName, value):
         varLocation = glGetUniformLocation(self.program, varName)

@@ -60,7 +60,6 @@ class RenderWindow:
         self.program = compileProgram(compileShader(vertexShader, GL_VERTEX_SHADER),
                                        compileShader(fragmentShader, GL_FRAGMENT_SHADER))
 
-        glUseProgram(self.program)
         self.scene = Scene(objFile, self.program, self.width, self.height)
 
         # exit flag
@@ -131,21 +130,10 @@ class RenderWindow:
             if key == glfw.KEY_ESCAPE:
                 self.exitNow = True
 
-            ## orthogonal <-> perspective
-            if key == glfw.KEY_O:
-                self.scene.perspective = False
-                glfw.set_window_title(win, '2D Scene - Orthographic')
-
-            if key == glfw.KEY_P:
-                self.scene.perspective = True
-                glfw.set_window_title(win, '2D Scene - Perspective')
-
-
             ## COLORS
-
             if mods == glfw.MOD_SHIFT:  # shift pressed (background color)
-                if key == glfw.KEY_S:  # black
-                    self.scene.actBgColor = self.scene.colors['BLACK']
+                #if key == glfw.KEY_S:  # black
+                #    self.scene.actBgColor = self.scene.colors['BLACK']
                 if key == glfw.KEY_W:  # white
                     self.scene.actBgColor = self.scene.colors['WHITE']
                 if key == glfw.KEY_R:  # red
@@ -156,8 +144,8 @@ class RenderWindow:
                     self.scene.actBgColor = self.scene.colors['YELLOW']
 
             else:  # shift not pressed ( object color)
-                if key == glfw.KEY_S:  # black
-                    self.scene.actColor = self.scene.colors['BLACK']
+               # if key == glfw.KEY_S:  # black
+              #      self.scene.actColor = self.scene.colors['BLACK']
                 if key == glfw.KEY_W:  # white
                     self.scene.actColor = self.scene.colors['WHITE']
                 if key == glfw.KEY_R:  # red
@@ -167,11 +155,20 @@ class RenderWindow:
                 if key == glfw.KEY_G:  # yellow
                     self.scene.actColor = self.scene.colors['YELLOW']
 
-                if key == glfw.KEY_H:  # shadows
-                    self.scene.hasShadow = not self.scene.hasShadow
+            if key == glfw.KEY_W:
+                self.scene.wireMode = True
+                self.scene.solidMode = False
+                self.scene.pointMode = False
 
-                if key == glfw.KEY_N:  # shadows
-                    self.scene.wireMode = not self.scene.wireMode
+            if key == glfw.KEY_S:
+                self.scene.wireMode = False
+                self.scene.solidMode = True
+                self.scene.pointMode = False
+
+            if key == glfw.KEY_P:
+                self.scene.wireMode = False
+                self.scene.solidMode = False
+                self.scene.pointMode = True
 
     def onSize(self, win, width, height):  # reshape
         print("onsize: ", win, width, height)
@@ -186,26 +183,12 @@ class RenderWindow:
         self.height = height
         self.aspect = width / float(height)
         glViewport(0, 0, self.width, self.height)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        if self.scene.perspective:
-            if width <= height:
-                gluPerspective(45*(height/float(width)), self.aspect, 0.1, 100)
-            else:
-                gluPerspective(45 * self.aspect, self.aspect, 0.1, 100)
-            gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
 
+        if width <= height:
+            self.scene.pMatrix = self.scene.perspectiveMatrix(45* height/float(width), self.aspect, 0.1, 100)
         else:
-            if width <= height:
-                glOrtho(-1.5, 1.5,
-                        -1.5 * height / width, 1.5 * height / width,
-                        -5.0, 5.0)
-            else:
-                glOrtho(-1.5 * width / height, 1.5 * width / height,
-                        -1.5, 1.5,
-                        -5.0, 5.0)
+            self.scene.pMatrix = self.scene.perspectiveMatrix(45 * self.aspect, self.aspect, 0.1, 100)
 
-        glMatrixMode(GL_MODELVIEW)
 
     def run(self):
 
@@ -213,7 +196,7 @@ class RenderWindow:
             # clear
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-            self.scene.render(self.width, self.height)
+            self.scene.render()
 
             glfw.swap_buffers(self.window)
             # Poll for and process events
