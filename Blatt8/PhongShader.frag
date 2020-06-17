@@ -12,7 +12,7 @@ float intensity(vec3 u, vec3 v) {
 
 void main(void)
 {
-    float diff = intensity(varyingNormal, varyingLightDir;
+    float diff = intensity(varyingNormal, varyingLightDir);
     vec4 vFragColor = diff * diffuseColor;
     vFragColor += ambientColor;
     vFragColor *= texture2D(colorMap, gl_TexCoord[0].st);

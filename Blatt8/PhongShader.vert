@@ -4,7 +4,7 @@ uniform mat4 mvMatrix;
 uniform mat3 normalMatrix;
 uniform vec3 lightPosition;
 
-varying vec4 varyingNormal;
+varying vec3 varyingNormal;
 varying vec3 varyingLightDir;
 
 void main(void)
