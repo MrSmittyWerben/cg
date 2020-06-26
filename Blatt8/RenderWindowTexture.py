@@ -61,7 +61,6 @@ class RenderWindow:
                                       compileShader(fragmentShader, GL_FRAGMENT_SHADER))
 
         self.scene = Scene(objFile, self.program, self.width, self.height)
-        self.scene.getTexture("Squirreltexture.jpg")
         print("done")
 
         # exit flag

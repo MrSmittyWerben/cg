@@ -84,9 +84,9 @@ class Scene:
         # shadows
         self.hasShadow = False
         self.light = [30, 30, 30]
-        self.ambient = [0.0, 1.0, 1.0, 1.0]
-        self.diffuse = [1.0, 1.0, 1.0, 0.6]
-        self.specular = [1.0, 1.0, 1.0, 0.2]
+        self.diffuse = [0.7059, 0.3922, 0.2353, 1]
+        self.ambient = [0.1765, 0.0980, 0.0588, 1]
+        self.specular = [0.3529, 0.1961, 0.1176, 1]
         self.shiny = 70
         self.p = np.array([
             [1, 0, 0, 0],
@@ -94,6 +94,9 @@ class Scene:
             [0, 0, 1, 0],
             [0, 1 / (-self.light[1]), 0, 0]
         ]).transpose()
+
+        # texture
+        self.getTexture("Squirreltexture.jpg")
 
         # object
         self.triangles, self.norms, self.textures = Triangles(self.objFile).generateObj()
@@ -118,12 +121,13 @@ class Scene:
 
         for v, vt, vn in zip(self.triangles, self.textures, self.norms):
             self.points.extend(v)
-            self.points.extend(vn)
             self.points.extend(vt)
+            self.points.extend(vn)
 
         self.data = vbo.VBO(np.array(self.points, 'f'))
 
         self.pMatrix = self.perspectiveMatrix(45, self.width/float(self.height), 0.1, 100)
+
 
     # render
     def render(self):
@@ -133,11 +137,21 @@ class Scene:
 
         mvMat = self.lookAt(0, 0, 4, 0, 0, 0, 0, 1, 0)
         mvMat *= (self.rotate(self.angle, self.axis) * self.actOri)
-        mvMat *= self.scale(self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor)
+        mvMat *= self.scale(self.scaleFactor * self.zoomFactor, self.scaleFactor * self.zoomFactor,
+                            self.scaleFactor * self.zoomFactor)
         mvMat *= self.translate(-self.center[0] + self.coords[0], -self.center[1] + self.coords[1], - self.center[2])
 
         normalMat = np.linalg.inv(mvMat[0:3, 0:3]).transpose()
         mvpMat = self.pMatrix * mvMat
+
+        glUseProgram(self.program)
+        self.sendMat4("mvMatrix", mvMat)
+        self.sendMat4("mvpMatrix", mvpMat)
+        self.sendMat3("normalMatrix", normalMat)
+        self.sendVec4("diffuseColor", self.diffuse)
+        self.sendVec4("ambientColor", self.ambient)
+        self.sendVec4("specularColor", self.specular)
+        self.sendVec3("lightPosition", self.light)
 
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_NORMAL_ARRAY)
@@ -145,19 +159,10 @@ class Scene:
 
         self.data.bind()
 
-        glUseProgram(self.program)
-        self.sendMatrix4("mvMatrix", mvMat)
-        self.sendMatrix4("mvpMatrix", mvpMat)
-        self.sendMatrix3("normalMatrix", normalMat)
-        self.sendVec4("diffuseColor", self.diffuse)
-        self.sendVec4("ambientColor", self.ambient)
-        self.sendVec4("specularColor", self.specular)
-        self.sendVec3("lightPosition", self.light)
-
         glVertexPointer(3, GL_FLOAT, 32, self.data)
         glNormalPointer(GL_FLOAT, 32, self.data+12)
         glTexCoordPointer(2, GL_FLOAT, 32, self.data + 24)
-
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glDrawArrays(GL_TRIANGLES, 0, len(self.data))
 
         self.data.unbind()
@@ -165,7 +170,6 @@ class Scene:
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
         glDisableClientState(GL_NORMAL_ARRAY)
 
-        glFlush()
 
     def sendValue(self, varName, value):
         varLocation = glGetUniformLocation(self.program, varName)
@@ -179,11 +183,11 @@ class Scene:
         varLocation = glGetUniformLocation(self.program, varName)
         glUniform4f(varLocation, *value)
 
-    def sendMatrix3(self, varName, matrix):
+    def sendMat3(self, varName, matrix):
         varLocation = glGetUniformLocation(self.program, varName)
         glUniformMatrix3fv(varLocation, 1, GL_TRUE, matrix.tolist())
 
-    def sendMatrix4(self, varName, matrix):
+    def sendMat4(self, varName, matrix):
         varLocation = glGetUniformLocation(self.program, varName)
         glUniformMatrix4fv(varLocation, 1, GL_TRUE, matrix.tolist())
 
