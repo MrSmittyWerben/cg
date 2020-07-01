@@ -17,7 +17,7 @@ elementList = []  # list of elements (used by Canvas.delete(...))
 
 a = 0
 b = 1
-n = 1000
+k = 5
 
 
 def drawPoints():
@@ -42,14 +42,11 @@ def drawPolygon():
 def drawBezierCurve():
     """ draw bezier curve defined by (control-)points """
 
-    parameter = []
-    for i in range(n+1):
-        t = a + (i/n)*(b-a)
-        parameter.append(t)
-
     bezPoints = [pointList[0]]
-    for i in range(n+1):
-        bezPoints.append(casteljau(np.array(pointList), parameter[i]))  # np array for mult later
+    for i in range((2 ** k) - 1):
+        a = i/(2**k)
+        b = (i+1)/(2**k)
+        bezPoints.append(casteljau(np.array(pointList), a, b))  # np array for mult later
 
     if len(bezPoints) > 1:
         for i in range(len(bezPoints) - 1):
@@ -59,7 +56,7 @@ def drawBezierCurve():
             elementList.append(element)
 
 
-def casteljau(points, t):
+def casteljau(points, start, end):
 
     if len(points) == 1:  # abbruch
         return points[0]
