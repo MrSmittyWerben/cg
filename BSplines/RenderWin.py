@@ -103,15 +103,15 @@ class RenderWin:
 
             if key == glfw.KEY_M:
                 if mods == glfw.MOD_SHIFT or mods == glfw.MOD_CAPS_LOCK:
-                    self.scene.renderCurvePoints += 1
+                    self.scene.m += 1
                 else:
-                    self.scene.renderCurvePoints -= 1
+                    self.scene.m -= 1
 
             if key == glfw.KEY_K:
                 if mods == glfw.MOD_SHIFT or mods == glfw.MOD_CAPS_LOCK:
-                    self.scene.curveOrder += 1
+                    self.scene.k += 1
                 else:
-                    self.scene.curveOrder -= 1
+                    self.scene.k -= 1
 
 
             ## COLORS

@@ -18,9 +18,13 @@ class SplineScene:
         glPointSize(self.pointsize)
         glLineWidth(self.linewidth)
 
+        self.controlPoints = []
+        self.curvePoints = []
+        self.knotVector = []
+
         # options
-        self.renderCurvePoints = 1
-        self.curveOrder = 1
+        self.m = 100
+        self.k = 1
 
         # movement
         self.doMove = False
@@ -55,7 +59,6 @@ class SplineScene:
         self.actColor = 0.0, 0.0, 0.0, 0.0
         self.actBgColor = 1.0, 1.0, 1.0, 1.0
 
-        self.controlPoints = []
 
     # render
     def render(self, width, height):
@@ -80,6 +83,20 @@ class SplineScene:
     def setPoint(self, x, y):
         self.controlPoints.extend((x, self.height - y))
         print(self.controlPoints)
+
+    def setVector(self):
+        k = self.k
+        n = len(self.controlPoints)
+
+        for i in range(k):
+            self.knotVector.append(0)
+
+        for i in range(n-(k-1)):
+            self.knotVector.append(i)
+
+        for i in range(k):
+            self.knotVector.append(n-(k-2))
+
 
     def deboor(self, degree, controlpoints, knotvector, t):
         return
