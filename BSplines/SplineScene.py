@@ -13,7 +13,7 @@ class SplineScene:
     # initialization
     def __init__(self, width, height):
         self.pointsize = 5.0
-        self.linewidth = 3.0
+        self.linewidth = 1.0
         self.width = width
         self.height = height
         glPointSize(self.pointsize)
@@ -21,6 +21,7 @@ class SplineScene:
 
         # movement
         self.doMove = False
+        self.zoomFactor = 1.0
 
         # Colors
         self.red = 1.0, 0.0, 0.0, 1.0
@@ -63,7 +64,10 @@ class SplineScene:
         data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(2, GL_FLOAT, 0, data)
-        glDrawArrays(GL_POINTS, 0, len(self.controlPoints))
+        glScale(self.zoomFactor, self.zoomFactor, self.zoomFactor)
+        glDrawArrays(GL_POINTS, 0, int(len(self.controlPoints)/2))
+        if len(self.controlPoints) > 1:
+            glDrawArrays(GL_LINE_STRIP, 0, int(len(self.controlPoints)/2))
         data.unbind()
         glDisableClientState(GL_VERTEX_ARRAY)
         glFlush()

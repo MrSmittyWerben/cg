@@ -24,6 +24,7 @@ class RenderWin:
         # buffer hints
         glfw.window_hint(glfw.DEPTH_BITS, 32)
 
+
         # make a window
         self.width, self.height = 640, 480
         self.aspect = self.width / float(self.height)
