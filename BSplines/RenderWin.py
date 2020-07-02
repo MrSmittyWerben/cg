@@ -99,6 +99,21 @@ class RenderWin:
             if key == glfw.KEY_ESCAPE:
                 self.exitNow = True
 
+            ## OPTIONS
+
+            if key == glfw.KEY_M:
+                if mods == glfw.MOD_SHIFT or mods == glfw.MOD_CAPS_LOCK:
+                    self.scene.renderCurvePoints += 1
+                else:
+                    self.scene.renderCurvePoints -= 1
+
+            if key == glfw.KEY_K:
+                if mods == glfw.MOD_SHIFT or mods == glfw.MOD_CAPS_LOCK:
+                    self.scene.curveOrder += 1
+                else:
+                    self.scene.curveOrder -= 1
+
+
             ## COLORS
             if mods == glfw.MOD_SHIFT:  # shift pressed (background color)
                 if key == glfw.KEY_S:  # black

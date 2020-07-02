@@ -1,4 +1,3 @@
-
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
@@ -18,6 +17,10 @@ class SplineScene:
         self.height = height
         glPointSize(self.pointsize)
         glLineWidth(self.linewidth)
+
+        # options
+        self.renderCurvePoints = 1
+        self.curveOrder = 1
 
         # movement
         self.doMove = False
@@ -56,7 +59,6 @@ class SplineScene:
 
     # render
     def render(self, width, height):
-
         glClearColor(*self.actBgColor)
         glColor(self.actColor)
 
@@ -64,14 +66,20 @@ class SplineScene:
         data.bind()
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(2, GL_FLOAT, 0, data)
-        glScale(self.zoomFactor, self.zoomFactor, self.zoomFactor)
-        glDrawArrays(GL_POINTS, 0, int(len(self.controlPoints)/2))
+
+        # glScale(self.zoomFactor, self.zoomFactor, self.zoomFactor)
+
+        glDrawArrays(GL_POINTS, 0, int(len(self.controlPoints) / 2))
         if len(self.controlPoints) > 1:
-            glDrawArrays(GL_LINE_STRIP, 0, int(len(self.controlPoints)/2))
+            glDrawArrays(GL_LINE_STRIP, 0, int(len(self.controlPoints) / 2))
+
         data.unbind()
         glDisableClientState(GL_VERTEX_ARRAY)
         glFlush()
 
     def setPoint(self, x, y):
-        self.controlPoints.extend((x, self.height-y))
+        self.controlPoints.extend((x, self.height - y))
         print(self.controlPoints)
+
+    def deboor(self, degree, controlpoints, knotvector, t):
+        return
