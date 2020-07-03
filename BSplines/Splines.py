@@ -69,9 +69,7 @@ class Scene:
             curveData.bind()
             glVertexPointer(2, GL_FLOAT, 0, curveData)
             glEnableClientState(GL_VERTEX_ARRAY)
-            glDrawArrays(GL_POINTS, 0, len(self.curvePoints))  # draw points
-            if len(self.curvePoints) > 1:
-                glDrawArrays(GL_LINE_STRIP, 0, len(self.curvePoints))
+            glDrawArrays(GL_LINE_STRIP, 0, len(self.curvePoints))  # draw curve
             curveData.unbind()
             glDisableClientState(GL_VERTEX_ARRAY)
 
@@ -118,11 +116,11 @@ class Scene:
     def calcCurve(self):
         t = 0
         while t < self.knotVector[-1]:  # while t is in vector
+            print(t)
             r = self.calcR(t)
-            print(r)
-            print(self.knotVector)
             self.curvePoints.append(self.deboor(self.k-1, self.controlPoints, self.knotVector, t, r))
             t += 1 / float(self.m)  # step
+        self.drawCurve = True
 
 
 class RenderWindow:
@@ -188,6 +186,18 @@ class RenderWindow:
             # ESC to quit
             if key == glfw.KEY_ESCAPE:
                 self.exitNow = True
+
+            if key == glfw.KEY_M:
+                if mods == glfw.MOD_CAPS_LOCK or mods == glfw.MOD_SHIFT:
+                    self.scene.m += 1
+                else:
+                    self.scene.m -= 1
+
+            if key == glfw.KEY_K:
+                if mods == glfw.MOD_CAPS_LOCK or mods == glfw.MOD_SHIFT:
+                    self.scene.k += 1
+                else:
+                    self.scene.k -= 1
 
             # COLORS
             if mods == glfw.MOD_SHIFT:  # shift pressed (background color)
