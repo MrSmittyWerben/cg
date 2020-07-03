@@ -2,8 +2,10 @@
   <dictionary name="PC">
     <words>
       <w>casteljau</w>
+      <w>controlpoints</w>
       <w>coords</w>
       <w>deboor</w>
+      <w>knotvector</w>
       <w>linewidth</w>
       <w>pointsize</w>
     </words>

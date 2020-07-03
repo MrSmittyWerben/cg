@@ -25,7 +25,9 @@ class Scene:
         self.curvePoints = []
 
         self.k = 4  # Degree
-        self.m = 10  # Points to calculate per interval
+        self.m = 10  # Points to calculate per interval, default value
+
+        self.drawCurve = False  # toggle when curve is ready
 
         # Colors
         self.red = 1.0, 0.0, 0.0, 1.0
@@ -61,11 +63,24 @@ class Scene:
             glDrawArrays(GL_LINE_STRIP, 0, len(self.controlPoints))
         pointData.unbind()
         glDisableClientState(GL_VERTEX_ARRAY)
+
+        if self.drawCurve:
+            curveData = vbo.VBO(np.array(self.curvePoints, 'f'))
+            curveData.bind()
+            glVertexPointer(2, GL_FLOAT, 0, curveData)
+            glEnableClientState(GL_VERTEX_ARRAY)
+            glDrawArrays(GL_POINTS, 0, len(self.curvePoints))  # draw points
+            if len(self.curvePoints) > 1:
+                glDrawArrays(GL_LINE_STRIP, 0, len(self.curvePoints))
+            curveData.unbind()
+            glDisableClientState(GL_VERTEX_ARRAY)
+
         glFlush()
 
     def setVector(self):
         # K = (0,...,0,1,2,3,...,n-(k-1), n-(k-2),...,n-(k-2))
         #      k-times    sequence              k-times
+        self.knotVector.clear()
 
         n = len(self.controlPoints)
         k = self.k
@@ -88,7 +103,10 @@ class Scene:
     def deboor(self, degree, controlpoints, knotvector, t, r):
 
         if degree == 0:
-            return controlpoints[r]  # exit
+            if r == len(controlpoints):
+                return controlpoints[r-1]
+            else:
+                return controlpoints[r]  # exit
 
         alpha = 0
         if knotvector[r] != self.knotVector[r-degree+self.k]:  # catch div by 0
@@ -101,8 +119,11 @@ class Scene:
         t = 0
         while t < self.knotVector[-1]:  # while t is in vector
             r = self.calcR(t)
+            print(r)
+            print(self.knotVector)
             self.curvePoints.append(self.deboor(self.k-1, self.controlPoints, self.knotVector, t, r))
             t += 1 / float(self.m)  # step
+
 
 class RenderWindow:
     """GLFW Rendering window class"""
