@@ -69,7 +69,7 @@ class Scene:
             curveData.bind()
             glVertexPointer(2, GL_FLOAT, 0, curveData)
             glEnableClientState(GL_VERTEX_ARRAY)
-            glDrawArrays(GL_LINE_STRIP, 0, len(self.curvePoints))  # draw curve
+            glDrawArrays(GL_POINTS, 0, len(self.curvePoints))  # draw curve
             curveData.unbind()
             glDisableClientState(GL_VERTEX_ARRAY)
 
@@ -116,11 +116,11 @@ class Scene:
     def calcCurve(self):
         t = 0
         while t < self.knotVector[-1]:  # while t is in vector
-            print(t)
             r = self.calcR(t)
             self.curvePoints.append(self.deboor(self.k-1, self.controlPoints, self.knotVector, t, r))
             t += 1 / float(self.m)  # step
         self.drawCurve = True
+        print(self.m)
 
 
 class RenderWindow:
@@ -174,30 +174,33 @@ class RenderWindow:
         self.animation = True
 
     def onMouseButton(self, win, button, action, mods):
-        print("mouse button: ", win, button, action, mods)
+        #print("mouse button: ", win, button, action, mods)
         if button == glfw.MOUSE_BUTTON_LEFT:
             if action == glfw.PRESS:
                 x, y = glfw.get_cursor_pos(win)
                 self.scene.setPoint(x, y)
 
     def onKeyboard(self, win, key, scancode, action, mods):
-        print("keyboard: ", win, key, scancode, action, mods)
+        #print("keyboard: ", win, key, scancode, action, mods)
         if action == glfw.PRESS:
             # ESC to quit
             if key == glfw.KEY_ESCAPE:
                 self.exitNow = True
 
             if key == glfw.KEY_M:
-                if mods == glfw.MOD_CAPS_LOCK or mods == glfw.MOD_SHIFT:
-                    self.scene.m += 1
-                else:
-                    self.scene.m -= 1
+                    if mods == glfw.MOD_CAPS_LOCK or mods == glfw.MOD_SHIFT:
+                        self.scene.m += 1
+                    else:
+                        if self.scene.m != 1:  # limit
+                            self.scene.m -= 1
+                    self.scene.calcCurve()
 
             if key == glfw.KEY_K:
                 if mods == glfw.MOD_CAPS_LOCK or mods == glfw.MOD_SHIFT:
                     self.scene.k += 1
                 else:
                     self.scene.k -= 1
+                self.scene.calcCurve()
 
             # COLORS
             if mods == glfw.MOD_SHIFT:  # shift pressed (background color)
