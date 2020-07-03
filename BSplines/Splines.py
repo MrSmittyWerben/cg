@@ -65,11 +65,15 @@ class Scene:
         glDisableClientState(GL_VERTEX_ARRAY)
 
         if self.drawCurve:
+            glColor(self.colors['RED'])
             curveData = vbo.VBO(np.array(self.curvePoints, 'f'))
             curveData.bind()
             glVertexPointer(2, GL_FLOAT, 0, curveData)
             glEnableClientState(GL_VERTEX_ARRAY)
             glDrawArrays(GL_POINTS, 0, len(self.curvePoints))  # draw curve
+            if len(self.curvePoints) > 2:
+                glColor(self.colors['BLUE'])
+                glDrawArrays(GL_LINE_STRIP, 0, len(self.curvePoints))
             curveData.unbind()
             glDisableClientState(GL_VERTEX_ARRAY)
 
