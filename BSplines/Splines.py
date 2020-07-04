@@ -132,6 +132,9 @@ class Scene:
         self.controlPoints.clear()
         self.curvePoints.clear()
 
+    def calcWeight(self, startX, startY, endX, endY):
+        pass
+
 
 class RenderWindow:
     """GLFW Rendering window class"""
@@ -187,8 +190,18 @@ class RenderWindow:
         if button == glfw.MOUSE_BUTTON_LEFT:
             if action == glfw.PRESS:
                 x, y = glfw.get_cursor_pos(win)
-                self.scene.setPoint(x, y)
-                print(f"Controlpoint set at ({x}, {y})")
+                if mods == glfw.MOD_SHIFT:
+                    startX = x
+                    startY = y
+                    if action == glfw.RELEASE:
+                        x, y = glfw.get_cursor_pos(win)
+                        endX = x
+                        endY = y
+                    self.scene.calcWeight(startX, startY, endX, endY)
+                else:
+                    self.scene.setPoint(x, y)
+                    print(f"Controlpoint set at ({x}, {y})")
+                
 
     def onKeyboard(self, win, key, scancode, action, mods):
         # print("keyboard: ", win, key, scancode, action, mods)
