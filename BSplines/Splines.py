@@ -214,6 +214,7 @@ class RenderWindow:
                     if self.scene.k != 1:
                         self.scene.k -= 1
                 print(f"k is now {self.scene.k}")
+                self.scene.setVector()
                 self.scene.calcCurve()
 
             if key == glfw.KEY_C:
