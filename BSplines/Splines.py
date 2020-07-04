@@ -28,6 +28,7 @@ class Scene:
         self.m = 10  # Points to calculate per interval, default value
 
         self.drawCurve = False  # toggle when curve is ready
+        self.drawControlPolygon = True  # toggle to set visibility of controlpoints / polygon
 
         # Colors
         self.red = 1.0, 0.0, 0.0, 1.0
@@ -58,9 +59,10 @@ class Scene:
         pointData.bind()
         glVertexPointer(2, GL_FLOAT, 0, pointData)
         glEnableClientState(GL_VERTEX_ARRAY)
-        glDrawArrays(GL_POINTS, 0, len(self.controlPoints))  # draw points
-        if len(self.controlPoints) > 1:
-            glDrawArrays(GL_LINE_STRIP, 0, len(self.controlPoints))
+        if self.drawControlPolygon:
+            glDrawArrays(GL_POINTS, 0, len(self.controlPoints))  # draw points
+            if len(self.controlPoints) > 1:
+                glDrawArrays(GL_LINE_STRIP, 0, len(self.controlPoints))
         pointData.unbind()
         glDisableClientState(GL_VERTEX_ARRAY)
 
@@ -100,31 +102,35 @@ class Scene:
     def calcR(self, t):
         for i in range(len(self.knotVector)):
             if self.knotVector[i] > t:  # interval of t*
-                return i-1
+                return i - 1
 
     def deboor(self, degree, controlpoints, knotvector, t, r):
 
         if degree == 0:
             if r == len(controlpoints):
-                return controlpoints[r-1]
+                return controlpoints[r - 1]
             else:
                 return controlpoints[r]  # exit
 
         alpha = 0
-        if knotvector[r] != self.knotVector[r-degree+self.k]:  # catch div by 0
-            alpha = (t-self.knotVector[r]) / (self.knotVector[r-degree+self.k] - knotvector[r])
+        if knotvector[r] != self.knotVector[r - degree + self.k]:  # catch div by 0
+            alpha = (t - self.knotVector[r]) / (self.knotVector[r - degree + self.k] - knotvector[r])
 
-        return ((1-alpha) * self.deboor(degree-1, self.controlPoints, self.knotVector, t, r-1)) + \
-               (alpha * self.deboor(degree-1, self.controlPoints, self.knotVector, t, r))
+        return ((1 - alpha) * self.deboor(degree - 1, self.controlPoints, self.knotVector, t, r - 1)) + \
+               (alpha * self.deboor(degree - 1, self.controlPoints, self.knotVector, t, r))
 
     def calcCurve(self):
+        self.curvePoints.clear()
         t = 0
         while t < self.knotVector[-1]:  # while t is in vector
             r = self.calcR(t)
-            self.curvePoints.append(self.deboor(self.k-1, self.controlPoints, self.knotVector, t, r))
+            self.curvePoints.append(self.deboor(self.k - 1, self.controlPoints, self.knotVector, t, r))
             t += 1 / float(self.m)  # step
         self.drawCurve = True
-        print(self.m)
+
+    def clearAll(self):
+        self.controlPoints.clear()
+        self.curvePoints.clear()
 
 
 class RenderWindow:
@@ -178,33 +184,48 @@ class RenderWindow:
         self.animation = True
 
     def onMouseButton(self, win, button, action, mods):
-        #print("mouse button: ", win, button, action, mods)
         if button == glfw.MOUSE_BUTTON_LEFT:
             if action == glfw.PRESS:
                 x, y = glfw.get_cursor_pos(win)
                 self.scene.setPoint(x, y)
+                print(f"Controlpoint set at ({x}, {y})")
 
     def onKeyboard(self, win, key, scancode, action, mods):
-        #print("keyboard: ", win, key, scancode, action, mods)
+        # print("keyboard: ", win, key, scancode, action, mods)
         if action == glfw.PRESS:
             # ESC to quit
             if key == glfw.KEY_ESCAPE:
                 self.exitNow = True
 
             if key == glfw.KEY_M:
-                    if mods == glfw.MOD_CAPS_LOCK or mods == glfw.MOD_SHIFT:
-                        self.scene.m += 1
-                    else:
-                        if self.scene.m != 1:  # limit
-                            self.scene.m -= 1
-                    self.scene.calcCurve()
+                if mods == glfw.MOD_CAPS_LOCK or mods == glfw.MOD_SHIFT:
+                    self.scene.m += 1
+                else:
+                    if self.scene.m != 1:  # limit
+                        self.scene.m -= 1
+                print(f"m is now {self.scene.m}")
+                self.scene.calcCurve()
 
             if key == glfw.KEY_K:
                 if mods == glfw.MOD_CAPS_LOCK or mods == glfw.MOD_SHIFT:
-                    self.scene.k += 1
+                    if self.scene.k < len(self.scene.controlPoints):
+                        self.scene.k += 1
                 else:
-                    self.scene.k -= 1
+                    if self.scene.k != 1:
+                        self.scene.k -= 1
+                print(f"k is now {self.scene.k}")
                 self.scene.calcCurve()
+
+            if key == glfw.KEY_C:
+                self.scene.clearAll()
+                print("Points cleared")
+
+            if key == glfw.KEY_D:
+                self.scene.drawControlPolygon = not self.scene.drawControlPolygon
+                if self.scene.drawControlPolygon:
+                    print("Visbility of control Polygon is set to on")
+                else:
+                    print("Visbility of control Polygon is to off")
 
             # COLORS
             if mods == glfw.MOD_SHIFT:  # shift pressed (background color)
