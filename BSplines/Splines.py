@@ -1,3 +1,5 @@
+import math
+
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -30,6 +32,9 @@ class Scene:
         self.drawCurve = False  # toggle when curve is ready
         self.drawControlPolygon = True  # toggle to set visibility of controlpoints / polygon
 
+        self.changeWeight = False
+        self.currentPoint = None
+
         # Colors
         self.red = 1.0, 0.0, 0.0, 1.0
         self.green = 0.0, 1.0, 0.0, 1.0
@@ -57,7 +62,7 @@ class Scene:
 
         pointData = vbo.VBO(np.array(self.controlPoints, 'f'))
         pointData.bind()
-        glVertexPointer(2, GL_FLOAT, 0, pointData)
+        glVertexPointer(3, GL_FLOAT, 0, pointData)
         glEnableClientState(GL_VERTEX_ARRAY)
         if self.drawControlPolygon:
             glDrawArrays(GL_POINTS, 0, len(self.controlPoints))  # draw points
@@ -94,7 +99,7 @@ class Scene:
         self.knotVector.extend([n - (k - 2)] * k)
 
     def setPoint(self, x, y):
-        self.controlPoints.append(np.array([x, self.height - y]))  # y starts at the top
+        self.controlPoints.append(np.array([x, self.height - y, 1]))  # y starts at the top
         if len(self.controlPoints) > (self.k - 1):
             self.setVector()
             self.calcCurve()
@@ -128,12 +133,24 @@ class Scene:
             t += 1 / float(self.m)  # step
         self.drawCurve = True
 
+        newpoints = []  # divide by weight
+        for point in self.curvePoints:
+            point = np.array([point[0]/point[2], point[1]/point[2]])
+            newpoints.append(point)
+        self.curvePoints.clear()
+        self.curvePoints.extend(newpoints)
+
+
     def clearAll(self):
         self.controlPoints.clear()
         self.curvePoints.clear()
 
     def calcWeight(self, startX, startY, endX, endY):
-        pass
+        distX = math.fabs(endX - startX)
+        distY = math.fabs(endY - startY)
+        print("Old: ", startX, startY)
+        print("New: ", endX, endY)
+        print(distX, distY)
 
 
 class RenderWindow:
@@ -163,6 +180,10 @@ class RenderWindow:
             glfw.terminate()
             return
 
+        # mouse coords
+        self.xS = 0
+        self.yS = 0
+
         # Make the window's context current
         glfw.make_context_current(self.window)
 
@@ -176,6 +197,7 @@ class RenderWindow:
         # set window callbacks
         glfw.set_mouse_button_callback(self.window, self.onMouseButton)
         glfw.set_key_callback(self.window, self.onKeyboard)
+        glfw.set_cursor_pos_callback(self.window, self.onMouseMoved)
 
         # create 3D
         self.scene = Scene(self.width, self.height)
@@ -188,20 +210,21 @@ class RenderWindow:
 
     def onMouseButton(self, win, button, action, mods):
         if button == glfw.MOUSE_BUTTON_LEFT:
+            if mods == glfw.MOD_SHIFT:
+                if action == glfw.PRESS:
+                    x, y = glfw.get_cursor_pos(win)
+                    for point in self.scene.controlPoints:
+                        if (point[0] - 10 < x < point[0] + 10) and (point[1] - 10 < x < point[1] + 10):
+                            self.scene.changeWeight = True
+                            self.scene.currentPoint = point
+                            break
             if action == glfw.PRESS:
                 x, y = glfw.get_cursor_pos(win)
-                if mods == glfw.MOD_SHIFT:
-                    startX = x
-                    startY = y
-                    if action == glfw.RELEASE:
-                        x, y = glfw.get_cursor_pos(win)
-                        endX = x
-                        endY = y
-                    self.scene.calcWeight(startX, startY, endX, endY)
-                else:
-                    self.scene.setPoint(x, y)
-                    print(f"Controlpoint set at ({x}, {y})")
-                
+                self.scene.setPoint(x, y)
+                print(f"Controlpoint set at ({x}, {y})")
+
+    def onMouseMoved(self, win, x, y):
+        pass
 
     def onKeyboard(self, win, key, scancode, action, mods):
         # print("keyboard: ", win, key, scancode, action, mods)
