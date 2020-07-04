@@ -99,7 +99,10 @@ class Scene:
         self.knotVector.extend([n - (k - 2)] * k)
 
     def setPoint(self, x, y):
-        self.controlPoints.append(np.array([x, self.height - y, 1]))  # y starts at the top
+        w = 1.0
+        point = np.array([w*x, w*(self.height - y), w])
+        self.controlPoints.append(point)  # y starts at the top
+        print(f"Controlpoint set at ({point[0]}, {point[1]}) with weight of {point[2]}")
         if len(self.controlPoints) > (self.k - 1):
             self.setVector()
             self.calcCurve()
@@ -125,6 +128,7 @@ class Scene:
                (alpha * self.deboor(degree - 1, self.controlPoints, self.knotVector, t, r))
 
     def calcCurve(self):
+        print(self.curvePoints)
         self.curvePoints.clear()
         t = 0
         while t < self.knotVector[-1]:  # while t is in vector
@@ -135,22 +139,14 @@ class Scene:
 
         newpoints = []  # divide by weight
         for point in self.curvePoints:
-            point = np.array([point[0]/point[2], point[1]/point[2]])
+            point = np.array([point[0] / point[2], point[1] / point[2]])
             newpoints.append(point)
         self.curvePoints.clear()
         self.curvePoints.extend(newpoints)
 
-
     def clearAll(self):
         self.controlPoints.clear()
         self.curvePoints.clear()
-
-    def calcWeight(self, startX, startY, endX, endY):
-        distX = math.fabs(endX - startX)
-        distY = math.fabs(endY - startY)
-        print("Old: ", startX, startY)
-        print("New: ", endX, endY)
-        print(distX, distY)
 
 
 class RenderWindow:
@@ -181,8 +177,10 @@ class RenderWindow:
             return
 
         # mouse coords
-        self.xS = 0
-        self.yS = 0
+        self.lButtonDown = False
+
+        self.lastPosX = 0
+        self.lastPosY = 0
 
         # Make the window's context current
         glfw.make_context_current(self.window)
@@ -205,26 +203,46 @@ class RenderWindow:
         # exit flag
         self.exitNow = False
 
-        # animation flag
-        self.animation = True
-
     def onMouseButton(self, win, button, action, mods):
-        if button == glfw.MOUSE_BUTTON_LEFT:
-            if mods == glfw.MOD_SHIFT:
+        if mods == glfw.MOD_SHIFT:
+            if button == glfw.MOUSE_BUTTON_LEFT:
                 if action == glfw.PRESS:
+                    self.lButtonDown = True
                     x, y = glfw.get_cursor_pos(win)
                     for point in self.scene.controlPoints:
-                        if (point[0] - 10 < x < point[0] + 10) and (point[1] - 10 < x < point[1] + 10):
+                        if (point[0] - 30 < x < point[0] + 30) and (
+                                point[1] - 30 < self.height - y < point[1] + 30):  # hitbox
                             self.scene.changeWeight = True
                             self.scene.currentPoint = point
+                            self.lastPosX = x
+                            self.lastPosY = y  # memorize position for offset later
                             break
-            if action == glfw.PRESS:
-                x, y = glfw.get_cursor_pos(win)
-                self.scene.setPoint(x, y)
-                print(f"Controlpoint set at ({x}, {y})")
+                if action == glfw.RELEASE:
+                    self.lButtonDown = False
+        else:
+            if button == glfw.MOUSE_BUTTON_LEFT:
+                if action == glfw.PRESS:
+                    x, y = glfw.get_cursor_pos(win)
+                    self.scene.setPoint(x, y)
 
     def onMouseMoved(self, win, x, y):
-        pass
+        if self.lButtonDown:
+            offX = x - self.lastPosX
+            offY = y - self.lastPosY
+
+            newpoints = []
+            for point in self.scene.controlPoints:
+                if np.array_equal(point, self.scene.currentPoint):
+                    newpoint = np.array([point[0], point[1], point[2] + (0.1 * (offX+offY))])
+                    print(f"Controlpoint set at ({newpoint[0]}, {newpoint[1]}) changed weight to {newpoint[2]}")
+                else:
+                    newpoint = point
+                newpoints.append(newpoint)
+
+            self.scene.controlPoints.clear()
+            self.scene.controlPoints.extend(newpoints)
+            self.scene.calcCurve()
+            self.scene.changeWeight = False
 
     def onKeyboard(self, win, key, scancode, action, mods):
         # print("keyboard: ", win, key, scancode, action, mods)
