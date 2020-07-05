@@ -85,15 +85,20 @@ class Scene:
     def setVector(self):
         # K = (0,...,0,1,2,3,...,n-(k-1), n-(k-2),...,n-(k-2))
         #      k-times    sequence              k-times
+
         self.knotVector.clear()
         n = len(self.controlPoints)
         k = self.k
+
         self.knotVector.extend([0] * k)
         self.knotVector.extend([i for i in range(1, n - (k - 2))])  # -2 because of python range
         self.knotVector.extend([n - (k - 2)] * k)
 
     def setPoint(self, x, y):
-        self.controlPoints.append(np.array([x, self.height - y]))  # y starts at the top
+        y = self.height - y  # translate y to our window
+        weight = 1.0  # default weight
+        self.weightedPoints.append(np.array([x*weight, y*weight, weight]))
+        self.controlPoints.append(np.array([x, y]))  # y starts at the top
         if len(self.controlPoints) > (self.k - 1):
             self.setVector()
             self.calcCurve()
@@ -121,7 +126,8 @@ class Scene:
         t = 0
         while t < self.knotVector[-1]:  # while t is in vector
             r = self.calcR(t)
-            self.curvePoints.append(self.deboor(self.k - 1, self.controlPoints, self.knotVector, t, r))
+            curvePoint = self.deboor(self.k - 1, self.weightedPoints, self.knotVector, t, r)
+            self.curvePoints.append(np.array([curvePoint[0]/curvePoint[2], curvePoint[1]/curvePoint[2]]))
             t += 1 / float(self.m)  # step
         self.drawCurve = True
 
