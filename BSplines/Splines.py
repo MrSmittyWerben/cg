@@ -1,10 +1,7 @@
-import math
-
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-
 import numpy as np
 from OpenGL.arrays import vbo
 
@@ -32,9 +29,6 @@ class Scene:
         self.drawCurve = False  # toggle when curve is ready
         self.drawControlPolygon = True  # toggle to set visibility of controlpoints / polygon
 
-        self.changeWeight = False
-        self.currentPoint = None
-
         # Colors
         self.red = 1.0, 0.0, 0.0, 1.0
         self.green = 0.0, 1.0, 0.0, 1.0
@@ -55,14 +49,14 @@ class Scene:
         self.actBgColor = 1.0, 1.0, 1.0, 1.0
         self.actColor = 0.0, 0.0, 0.0, 0.0
 
-    # render 
+    # render
     def render(self):
         glClearColor(*self.actBgColor)
         glColor(self.actColor)
 
         pointData = vbo.VBO(np.array(self.controlPoints, 'f'))
         pointData.bind()
-        glVertexPointer(3, GL_FLOAT, 0, pointData)
+        glVertexPointer(2, GL_FLOAT, 0, pointData)
         glEnableClientState(GL_VERTEX_ARRAY)
         if self.drawControlPolygon:
             glDrawArrays(GL_POINTS, 0, len(self.controlPoints))  # draw points
@@ -90,19 +84,14 @@ class Scene:
         # K = (0,...,0,1,2,3,...,n-(k-1), n-(k-2),...,n-(k-2))
         #      k-times    sequence              k-times
         self.knotVector.clear()
-
         n = len(self.controlPoints)
         k = self.k
-
         self.knotVector.extend([0] * k)
         self.knotVector.extend([i for i in range(1, n - (k - 2))])  # -2 because of python range
         self.knotVector.extend([n - (k - 2)] * k)
 
     def setPoint(self, x, y):
-        w = 1.0
-        point = np.array([w*x, w*(self.height - y), w])
-        self.controlPoints.append(point)  # y starts at the top
-        print(f"Controlpoint set at ({point[0]}, {point[1]}) with weight of {point[2]}")
+        self.controlPoints.append(np.array([x, self.height - y]))  # y starts at the top
         if len(self.controlPoints) > (self.k - 1):
             self.setVector()
             self.calcCurve()
@@ -113,7 +102,6 @@ class Scene:
                 return i - 1
 
     def deboor(self, degree, controlpoints, knotvector, t, r):
-
         if degree == 0:
             if r == len(controlpoints):
                 return controlpoints[r - 1]
@@ -123,12 +111,10 @@ class Scene:
         alpha = 0
         if knotvector[r] != self.knotVector[r - degree + self.k]:  # catch div by 0
             alpha = (t - self.knotVector[r]) / (self.knotVector[r - degree + self.k] - knotvector[r])
-
         return ((1 - alpha) * self.deboor(degree - 1, self.controlPoints, self.knotVector, t, r - 1)) + \
                (alpha * self.deboor(degree - 1, self.controlPoints, self.knotVector, t, r))
 
     def calcCurve(self):
-        print(self.curvePoints)
         self.curvePoints.clear()
         t = 0
         while t < self.knotVector[-1]:  # while t is in vector
@@ -136,13 +122,6 @@ class Scene:
             self.curvePoints.append(self.deboor(self.k - 1, self.controlPoints, self.knotVector, t, r))
             t += 1 / float(self.m)  # step
         self.drawCurve = True
-
-        newpoints = []  # divide by weight
-        for point in self.curvePoints:
-            point = np.array([point[0] / point[2], point[1] / point[2]])
-            newpoints.append(point)
-        self.curvePoints.clear()
-        self.curvePoints.extend(newpoints)
 
     def clearAll(self):
         self.controlPoints.clear()
@@ -153,21 +132,16 @@ class RenderWindow:
     """GLFW Rendering window class"""
 
     def __init__(self):
-
         # save current working directory
         cwd = os.getcwd()
-
         # Initialize the library
         if not glfw.init():
             return
-
         # restore cwd
         os.chdir(cwd)
-
         # window hints
         glfw.window_hint(glfw.DEPTH_BITS, 32)
         glfw.window_hint(glfw.RESIZABLE, GL_FALSE)
-
         # make a window
         self.width, self.height = 800, 600
         self.aspect = self.width / float(self.height)
@@ -175,74 +149,30 @@ class RenderWindow:
         if not self.window:
             glfw.terminate()
             return
-
-        # mouse coords
-        self.lButtonDown = False
-
-        self.lastPosX = 0
-        self.lastPosY = 0
-
         # Make the window's context current
         glfw.make_context_current(self.window)
-
         # initialize GL
         glViewport(0, 0, self.width, self.height)
         glClearColor(1.0, 1.0, 1.0, 1.0)
         glMatrixMode(GL_PROJECTION)
         glOrtho(0, self.width, 0, self.height, -1, 1)
         glMatrixMode(GL_MODELVIEW)
-
         # set window callbacks
         glfw.set_mouse_button_callback(self.window, self.onMouseButton)
         glfw.set_key_callback(self.window, self.onKeyboard)
-        glfw.set_cursor_pos_callback(self.window, self.onMouseMoved)
-
         # create 3D
         self.scene = Scene(self.width, self.height)
-
         # exit flag
         self.exitNow = False
+        # animation flag
+        self.animation = True
 
     def onMouseButton(self, win, button, action, mods):
-        if mods == glfw.MOD_SHIFT:
-            if button == glfw.MOUSE_BUTTON_LEFT:
-                if action == glfw.PRESS:
-                    self.lButtonDown = True
-                    x, y = glfw.get_cursor_pos(win)
-                    for point in self.scene.controlPoints:
-                        if (point[0] - 30 < x < point[0] + 30) and (
-                                point[1] - 30 < self.height - y < point[1] + 30):  # hitbox
-                            self.scene.changeWeight = True
-                            self.scene.currentPoint = point
-                            self.lastPosX = x
-                            self.lastPosY = y  # memorize position for offset later
-                            break
-                if action == glfw.RELEASE:
-                    self.lButtonDown = False
-        else:
-            if button == glfw.MOUSE_BUTTON_LEFT:
-                if action == glfw.PRESS:
-                    x, y = glfw.get_cursor_pos(win)
-                    self.scene.setPoint(x, y)
-
-    def onMouseMoved(self, win, x, y):
-        if self.lButtonDown:
-            offX = x - self.lastPosX
-            offY = y - self.lastPosY
-
-            newpoints = []
-            for point in self.scene.controlPoints:
-                if np.array_equal(point, self.scene.currentPoint):
-                    newpoint = np.array([point[0], point[1], point[2] + (0.1 * (offX+offY))])
-                    print(f"Controlpoint set at ({newpoint[0]}, {newpoint[1]}) changed weight to {newpoint[2]}")
-                else:
-                    newpoint = point
-                newpoints.append(newpoint)
-
-            self.scene.controlPoints.clear()
-            self.scene.controlPoints.extend(newpoints)
-            self.scene.calcCurve()
-            self.scene.changeWeight = False
+        if button == glfw.MOUSE_BUTTON_LEFT:
+            if action == glfw.PRESS:
+                x, y = glfw.get_cursor_pos(win)
+                self.scene.setPoint(x, y)
+                print(f"Controlpoint set at ({x}, {y})")
 
     def onKeyboard(self, win, key, scancode, action, mods):
         # print("keyboard: ", win, key, scancode, action, mods)
@@ -299,10 +229,8 @@ class RenderWindow:
         while not glfw.window_should_close(self.window) and not self.exitNow:
             # clear
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
             # render scene
             self.scene.render()
-
             glfw.swap_buffers(self.window)
             # Poll for and process events
             glfw.poll_events()
