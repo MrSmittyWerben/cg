@@ -23,10 +23,13 @@ class Scene:
         self.knotVector = []
         self.curvePoints = []
 
+        # weight
         self.weightedPoints = []
+        self.changeWeight = False
+        self.currentPoint = None
 
         self.k = 4  # Degree
-        self.m = 10  # Points to calculate per interval, default value
+        self.m = 20  # Points to calculate per interval, default value
 
         self.drawCurve = False  # toggle when curve is ready
         self.drawControlPolygon = True  # toggle to set visibility of controlpoints / polygon
@@ -94,12 +97,13 @@ class Scene:
         self.knotVector.extend([i for i in range(1, n - (k - 2))])  # -2 because of python range
         self.knotVector.extend([n - (k - 2)] * k)
 
-    def setPoint(self, x, y):
+    def setPoint(self, x, y, weight=1.0):
         y = self.height - y  # translate y to our window
-        weight = 1.0  # default weight
-        self.weightedPoints.append(np.array([x*weight, y*weight, weight]))
+        self.weightedPoints.append(np.array([x * weight, y * weight, weight]))
+        print(f"Controlpoint set at ({x}, {y}) with weight of {weight}")
         self.controlPoints.append(np.array([x, y]))  # y starts at the top
         if len(self.controlPoints) > (self.k - 1):
+            self.k += 1
             self.setVector()
             self.calcCurve()
 
@@ -118,6 +122,7 @@ class Scene:
         alpha = 0
         if knotvector[r] != knotvector[r - degree + self.k]:  # catch div by 0
             alpha = (t - knotvector[r]) / (knotvector[r - degree + self.k] - knotvector[r])
+
         return ((1 - alpha) * self.deboor(degree - 1, controlpoints, knotvector, t, r - 1)) + \
                (alpha * self.deboor(degree - 1, controlpoints, knotvector, t, r))
 
@@ -127,8 +132,10 @@ class Scene:
         while t < self.knotVector[-1]:  # while t is in vector
             r = self.calcR(t)
             curvePoint = self.deboor(self.k - 1, self.weightedPoints, self.knotVector, t, r)
-            self.curvePoints.append(np.array([curvePoint[0]/curvePoint[2], curvePoint[1]/curvePoint[2]]))
-            t += 1 / float(self.m)  # step
+            print("Calc: ", curvePoint)
+            self.curvePoints.append(
+                np.array([curvePoint[0] / curvePoint[2], curvePoint[1] / curvePoint[2]]))  # persp. div
+            t += self.knotVector[-1] / float(self.m)  # step
         self.drawCurve = True
 
     def clearAll(self):
@@ -158,6 +165,7 @@ class RenderWindow:
             glfw.terminate()
             return
         # Make the window's context current
+
         glfw.make_context_current(self.window)
         # initialize GL
         glViewport(0, 0, self.width, self.height)
@@ -165,22 +173,64 @@ class RenderWindow:
         glMatrixMode(GL_PROJECTION)
         glOrtho(0, self.width, 0, self.height, -1, 1)
         glMatrixMode(GL_MODELVIEW)
+
         # set window callbacks
         glfw.set_mouse_button_callback(self.window, self.onMouseButton)
         glfw.set_key_callback(self.window, self.onKeyboard)
+        glfw.set_cursor_pos_callback(self.window, self.onMouseMoved)
+
         # create 3D
         self.scene = Scene(self.width, self.height)
+
         # exit flag
         self.exitNow = False
-        # animation flag
-        self.animation = True
+
+    def onMouseMoved(self, win, x, y):
+        if self.scene.changeWeight:
+            y = self.height - y
+            point_height = self.scene.controlPoints[self.scene.currentPoint][1]
+            offset = y - point_height
+            inc = offset / 500.0
+            new_weight = 5
+            if offset > 0:
+                new_weight = (self.scene.weightedPoints[self.scene.currentPoint][2] + inc) if \
+                    self.scene.weightedPoints[self.scene.currentPoint][2] <= 10 else 10
+
+            if offset < 0:
+                new_weight = (self.scene.weightedPoints[self.scene.currentPoint][2] + inc) if \
+                    self.scene.weightedPoints[self.scene.currentPoint][2] > 1 else 1
+
+            oldpoints = self.scene.weightedPoints.copy()
+            self.scene.weightedPoints.clear()
+
+            for i in range(0, len(oldpoints)):
+                if i != self.scene.currentPoint:
+                    self.scene.weightedPoints.append(oldpoints[i])
+                else:
+                    p = np.array([self.scene.controlPoints[i][0], self.scene.controlPoints[i][0], 1])
+                    self.scene.weightedPoints.append(p*new_weight)
+                    print("New: ", p)
+
+            self.scene.calcCurve()
 
     def onMouseButton(self, win, button, action, mods):
-        if button == glfw.MOUSE_BUTTON_LEFT:
+        if button == glfw.MOUSE_BUTTON_RIGHT:
+            if action == glfw.PRESS:
+                x, y = glfw.get_cursor_pos(win)
+                y = self.height - y
+                for i in range(0, len(self.scene.controlPoints)):
+                    point = self.scene.controlPoints[i]
+                    if (point[0] - 15 < x < point[0] + 15) and (point[1] - 15 < y < point[1] + 15):
+                        self.scene.currentPoint = i
+                        self.scene.changeWeight = True
+                        break
+            if action == glfw.RELEASE:
+                self.scene.changeWeight = False
+
+        elif button == glfw.MOUSE_BUTTON_LEFT:
             if action == glfw.PRESS:
                 x, y = glfw.get_cursor_pos(win)
                 self.scene.setPoint(x, y)
-                print(f"Controlpoint set at ({x}, {y})")
 
     def onKeyboard(self, win, key, scancode, action, mods):
         # print("keyboard: ", win, key, scancode, action, mods)
