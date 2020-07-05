@@ -23,6 +23,8 @@ class Scene:
         self.knotVector = []
         self.curvePoints = []
 
+        self.weightedPoints = []
+
         self.k = 4  # Degree
         self.m = 10  # Points to calculate per interval, default value
 
@@ -109,10 +111,10 @@ class Scene:
                 return controlpoints[r]  # exit
 
         alpha = 0
-        if knotvector[r] != self.knotVector[r - degree + self.k]:  # catch div by 0
-            alpha = (t - self.knotVector[r]) / (self.knotVector[r - degree + self.k] - knotvector[r])
-        return ((1 - alpha) * self.deboor(degree - 1, self.controlPoints, self.knotVector, t, r - 1)) + \
-               (alpha * self.deboor(degree - 1, self.controlPoints, self.knotVector, t, r))
+        if knotvector[r] != knotvector[r - degree + self.k]:  # catch div by 0
+            alpha = (t - knotvector[r]) / (knotvector[r - degree + self.k] - knotvector[r])
+        return ((1 - alpha) * self.deboor(degree - 1, controlpoints, knotvector, t, r - 1)) + \
+               (alpha * self.deboor(degree - 1, controlpoints, knotvector, t, r))
 
     def calcCurve(self):
         self.curvePoints.clear()
