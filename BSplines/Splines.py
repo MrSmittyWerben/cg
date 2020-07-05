@@ -132,7 +132,6 @@ class Scene:
         while t < self.knotVector[-1]:  # while t is in vector
             r = self.calcR(t)
             curvePoint = self.deboor(self.k - 1, self.weightedPoints, self.knotVector, t, r)
-            print("Calc: ", curvePoint)
             self.curvePoints.append(
                 np.array([curvePoint[0] / curvePoint[2], curvePoint[1] / curvePoint[2]]))  # persp. div
             t += self.knotVector[-1] / float(self.m)  # step
@@ -191,7 +190,7 @@ class RenderWindow:
             point_height = self.scene.controlPoints[self.scene.currentPoint][1]
             offset = y - point_height
             inc = offset / 500.0
-            new_weight = 5
+            new_weight = 1
             if offset > 0:
                 new_weight = (self.scene.weightedPoints[self.scene.currentPoint][2] + inc) if \
                     self.scene.weightedPoints[self.scene.currentPoint][2] <= 10 else 10
@@ -201,16 +200,16 @@ class RenderWindow:
                     self.scene.weightedPoints[self.scene.currentPoint][2] > 1 else 1
 
             oldpoints = self.scene.weightedPoints.copy()
+            print("Old: ", oldpoints)
             self.scene.weightedPoints.clear()
 
             for i in range(0, len(oldpoints)):
                 if i != self.scene.currentPoint:
                     self.scene.weightedPoints.append(oldpoints[i])
                 else:
-                    p = np.array([self.scene.controlPoints[i][0], self.scene.controlPoints[i][0], 1])
+                    p = np.array([self.scene.controlPoints[i][0], self.scene.controlPoints[i][1], 1])
                     self.scene.weightedPoints.append(p*new_weight)
-                    print("New: ", p)
-
+            print("New: ", self.scene.weightedPoints)
             self.scene.calcCurve()
 
     def onMouseButton(self, win, button, action, mods):
