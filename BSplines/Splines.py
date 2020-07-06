@@ -139,6 +139,7 @@ class Scene:
 
     def clearAll(self):
         self.controlPoints.clear()
+        self.weightedPoints.clear()
         self.curvePoints.clear()
 
 
