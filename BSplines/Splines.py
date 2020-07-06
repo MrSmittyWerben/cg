@@ -141,6 +141,7 @@ class Scene:
         self.controlPoints.clear()
         self.weightedPoints.clear()
         self.curvePoints.clear()
+        self.k = 4
 
 
 class RenderWindow:
@@ -209,7 +210,7 @@ class RenderWindow:
                     self.scene.weightedPoints.append(oldpoints[i])
                 else:
                     p = np.array([self.scene.controlPoints[i][0], self.scene.controlPoints[i][1], 1])
-                    self.scene.weightedPoints.append(p*new_weight)
+                    self.scene.weightedPoints.append(p * new_weight)
             print("New: ", self.scene.weightedPoints)
             self.scene.calcCurve()
 
@@ -234,6 +235,7 @@ class RenderWindow:
 
     def onKeyboard(self, win, key, scancode, action, mods):
         # print("keyboard: ", win, key, scancode, action, mods)
+
         if action == glfw.PRESS:
             # ESC to quit
             if key == glfw.KEY_ESCAPE:
